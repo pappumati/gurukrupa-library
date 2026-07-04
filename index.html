@@ -8,9 +8,10 @@
   <link rel="manifest" href="manifest.json"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
     html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
-    *{box-sizing:border-box;margin:0;padding:0}
+    *{margin:0;padding:0;box-sizing:border-box}
     :root{
       --p:#1a3a6b;--pl:#2657a8;--pd:#0d1f3c;
       --a:#e65c00;--al:#ff7b1f;
@@ -55,11 +56,11 @@
     .stat-label{font-size:10px;color:var(--muted);font-weight:500}
 
     /* SEAT MAP */
-    .seat-section{margin-bottom:10px}
+    .seat-section{margin-bottom:10px;width:100%}
     .seat-section-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;padding:4px 8px;background:var(--bg);border-radius:6px}
-    .seat-map{display:grid;grid-template-columns:repeat(14,1fr);gap:2px}
-    .seat-map-g{display:grid;grid-template-columns:repeat(12,1fr);gap:2px}
-    .seat{aspect-ratio:1;min-width:0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent;overflow:hidden}
+    .seat-map{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px;width:100%}
+    .seat-map-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;width:100%}
+    .seat{aspect-ratio:1;min-width:0;min-height:0;width:100%;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent;overflow:hidden;white-space:nowrap}
     .seat:active{transform:scale(.88)}
     .seat.empty{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
     .seat.full{background:var(--p);color:#fff}
@@ -1280,8 +1281,7 @@ sendWA=function(){
 };
 
 sendWADirect=function(phone,name,fee,seat){
-  const upiLink=`upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${fee}&cu=INR&tn=${encodeURIComponent('LibFee-'+name)}`;
-  const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear ${name},\n\nYour library membership fee of *₹${fee}* is due.\nSeat No: *${seat}*\n\nPlease pay at the earliest to continue using the library.\n\n💳 *Pay via UPI:*\n${upiLink}\n\nOr UPI ID: *${UPI_ID}*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
+  const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear ${name},\n\nYour library membership fee of *₹${fee}* is due.\nSeat No: *${seat}*\n\nPlease pay at the earliest to continue using the library.\n\n💳 UPI ID: *${UPI_ID}*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
   window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
 };
 
@@ -1336,19 +1336,47 @@ showReceipt=function(){
   document.getElementById('receiptModal').classList.add('open');
 };
 
-sendReceiptWA=function(){
+async function renderReceiptCanvas(){
+  const el=document.getElementById('receiptContent');
+  return await html2canvas(el,{scale:3,backgroundColor:'#ffffff'});
+}
+
+sendReceiptWA=async function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
-  const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nगुरुकृपा पुस्तकालय आपका स्वागत करती है!\nGurukrupa Library welcomes you!\n\n✅ We have received your payment for:\n\n👤 Name: ${s.name}\n🪑 Seat No: ${seatLabel}\n⏰ Slot: ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})\n📅 Period: ${s.admFrom||'-'} to ${s.admTo||'-'}\n💰 Amount Paid: ₹${(s.fee||0).toLocaleString('en-IN')}\n\n🙏 धन्यवाद / Thank You!\nGurukrupa Library, Nagpur`;
-  window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(msg)}`,'_blank');
+  const caption=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nWe have received your payment for:\n\n👤 Name: ${s.name}\n🪑 Seat No: ${seatLabel}\n⏰ Slot: ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})\n📅 Period: ${s.admFrom||'-'} to ${s.admTo||'-'}\n💰 Amount Paid: ₹${(s.fee||0).toLocaleString('en-IN')}\n\nThank You!\nGurukrupa Library, Nagpur`;
+  showToast('Preparing receipt image...');
+  try{
+    const canvas=await renderReceiptCanvas();
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    const file=new File([blob],`Receipt-${s.name}-${seatLabel}.png`,{type:'image/png'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file],title:'Fee Receipt',text:caption});
+      return;
+    }
+    // Fallback: download image, then open WhatsApp chat with text caption
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();
+    showToast('Receipt image saved. Attach it in WhatsApp.');
+    window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(caption)}`,'_blank');
+  }catch(err){
+    showToast('Could not generate image, sending text instead.');
+    window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(caption)}`,'_blank');
+  }
 };
 
-dlReceipt=function(){
-  const content=document.getElementById('receiptContent').innerText;
-  const blob=new Blob([content],{type:'text/plain'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='receipt.txt';a.click();
-  showToast('Receipt downloaded!');
+dlReceipt=async function(){
+  try{
+    const canvas=await renderReceiptCanvas();
+    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='receipt.png';a.click();
+    showToast('Receipt downloaded!');
+  }catch(err){
+    const content=document.getElementById('receiptContent').innerText;
+    const blob=new Blob([content],{type:'text/plain'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='receipt.txt';a.click();
+    showToast('Receipt downloaded!');
+  }
 };
 
 // ===== STUDENT QR =====
