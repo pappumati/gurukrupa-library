@@ -1066,7 +1066,9 @@ extendAdmission=async function(){
 // ===== DASHBOARD =====
 function updateDashboard(){
   const total=131;
-  const occ=window._students.length;
+  const occSeats=new Set(window._students.map(s=>(s.seatPrefix||'')+s.seat));
+  const occ=occSeats.size;
+  const stu=window._students.length;
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
@@ -1074,7 +1076,7 @@ function updateDashboard(){
 
   document.getElementById('statOcc').textContent=occ;
   document.getElementById('statVac').textContent=total-occ;
-  document.getElementById('statStu').textContent=occ;
+  document.getElementById('statStu').textContent=stu;
   document.getElementById('statRev').textContent=rev.toLocaleString('en-IN');
   document.getElementById('statPaid').textContent=paid;
   document.getElementById('statDue').textContent=due;
@@ -1346,23 +1348,17 @@ sendReceiptWA=async function(){
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
   const caption=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nWe have received your payment for:\n\n👤 Name: ${s.name}\n🪑 Seat No: ${seatLabel}\n⏰ Slot: ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})\n📅 Period: ${s.admFrom||'-'} to ${s.admTo||'-'}\n💰 Amount Paid: ₹${(s.fee||0).toLocaleString('en-IN')}\n\nThank You!\nGurukrupa Library, Nagpur`;
-  showToast('Preparing receipt image...');
   try{
     const canvas=await renderReceiptCanvas();
     const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-    const file=new File([blob],`Receipt-${s.name}-${seatLabel}.png`,{type:'image/png'});
-    if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file],title:'Fee Receipt',text:caption});
-      return;
-    }
-    // Fallback: download image, then open WhatsApp chat with text caption
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=file.name;a.click();
-    showToast('Receipt image saved. Attach it in WhatsApp.');
-    window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(caption)}`,'_blank');
+    // Save image straight to the phone's gallery/downloads
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Receipt-${s.name}-${seatLabel}.png`;a.click();
+    showToast('Receipt image saved! Opening WhatsApp — tap 📎 to attach it.');
   }catch(err){
     showToast('Could not generate image, sending text instead.');
-    window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(caption)}`,'_blank');
   }
+  // Go straight to this student's WhatsApp chat (no generic share picker)
+  window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(caption)}`,'_blank');
 };
 
 dlReceipt=async function(){
