@@ -1886,12 +1886,12 @@ async function generateReceiptPNG(){
 
 dlReceiptPNG=async function(){
   showToast('Generating image...');
-  const png=await generateReceiptPNG();
-  if(!png){showToast('Error generating image');return;}
-  const a=document.createElement('a');
-  a.href=png;
+  const canvas=await generateReceiptPNG();
+  if(!canvas){showToast('Error generating image');return;}
   const s=window._students.find(x=>x.id===window._curStuId);
-  a.download=`Receipt-${s?s.name.replace(/ /g,'_'):'Student'}.png`;
+  const a=document.createElement('a');
+  a.href=canvas.toDataURL('image/png');
+  a.download='Receipt-'+(s?s.name.replace(/ /g,'_'):'Student')+'.png';
   a.click();
   showToast('Receipt image downloaded! ✅');
 };
@@ -1915,6 +1915,43 @@ dlReceiptPNGAndWA=async function(){
     window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(msg),'_blank');
     showToast('Image downloaded! Attach it in WhatsApp 📎');
   },1500);
+};
+
+shareReceiptPNG=async function(){
+  const s=window._students.find(x=>x.id===window._curStuId);
+  if(!s){showToast('Student not found');return;}
+  showToast('Generating receipt image...');
+  const canvas=await generateReceiptPNG();
+  if(!canvas){showToast('Error generating image. Try again.');return;}
+  const filename='Receipt-'+s.name.replace(/ /g,'_')+'.png';
+  canvas.toBlob(async function(blob){
+    if(!blob){showToast('Error creating image');return;}
+    const file=new File([blob],filename,{type:'image/png'});
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+      try{
+        await navigator.share({
+          files:[file],
+          title:'Fee Receipt - Gurukrupa Library',
+          text:'Fee Receipt from Gurukrupa Library & Study Circle, Nagpur.'
+        });
+        showToast('Shared! ✅');
+      } catch(e){
+        if(e.name!=='AbortError'){
+          const url=URL.createObjectURL(blob);
+          const a=document.createElement('a');
+          a.href=url; a.download=filename; a.click();
+          URL.revokeObjectURL(url);
+          showToast('Downloaded! Share from gallery 📎');
+        }
+      }
+    } else {
+      const url=URL.createObjectURL(blob);
+      const a=document.createElement('a');
+      a.href=url; a.download=filename; a.click();
+      URL.revokeObjectURL(url);
+      showToast('Receipt saved! Share from your gallery 📎');
+    }
+  },'image/png');
 };
 
 // ===== WIRE UP ALL GLOBAL CALLBACKS =====
