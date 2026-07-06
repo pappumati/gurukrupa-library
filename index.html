@@ -511,7 +511,7 @@
     </div>
     <div class="detail-actions">
       <button class="btn btn-out btn-sm" onclick="editStudent()">✏️ Edit</button>
-      <button class="btn btn-p btn-sm" onclick="showStudentQR()">📋 QR Card</button>
+
     </div>
     <button class="btn btn-err btn-sm" onclick="deleteStudent()" style="margin-bottom:8px">🗑️ Delete Student</button>
     <button class="btn btn-out" onclick="closeModal('stuDetailModal')">Close</button>
@@ -1923,29 +1923,27 @@ shareReceiptPNG=async function(){
   showToast('Generating receipt image...');
   try{
     const canvas=await generateReceiptPNG();
-    if(!canvas){showToast('Error generating image');return;}
+    if(!canvas){showToast('Error generating image. Try again.');return;}
     const filename='Receipt-'+s.name.replace(/ /g,'_')+'.png';
-    // Convert canvas to blob
-    canvas.toBlob(async function(blob){
-      if(!blob){showToast('Error creating image');return;}
-      // Try Web Share API (works on Android Chrome & iOS Safari)
+    const dataURL=canvas.toDataURL('image/png');
+    // Convert dataURL to blob
+    const res=await fetch(dataURL);
+    const blob=await res.blob();
+    const file=new File([blob],filename,{type:'image/png'});
+    // Try native share sheet
+    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
       try{
-        const file=new File([blob],filename,{type:'image/png'});
-        if(navigator.share && navigator.canShare({files:[file]})){
-          await navigator.share({files:[file],title:'Fee Receipt'});
-          showToast('Shared! ✅');
-          return;
-        }
+        await navigator.share({files:[file],title:'Fee Receipt - Gurukrupa Library'});
+        showToast('Shared! ✅');
+        return;
       } catch(shareErr){
-        if(shareErr.name==='AbortError') return; // user cancelled
+        if(shareErr.name==='AbortError') return;
       }
-      // Fallback: download image
-      const url=URL.createObjectURL(blob);
-      const a=document.createElement('a');
-      a.href=url; a.download=filename; a.click();
-      setTimeout(()=>URL.revokeObjectURL(url),1000);
-      showToast('Receipt saved to Downloads! Share from gallery 📎');
-    },'image/png');
+    }
+    // Fallback: download
+    const a=document.createElement('a');
+    a.href=dataURL; a.download=filename; a.click();
+    showToast('Saved to Downloads! Share from gallery 📎');
   } catch(e){
     showToast('Error: '+e.message);
     console.error(e);
