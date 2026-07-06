@@ -56,10 +56,12 @@
 
     /* SEAT MAP */
     .seat-section{margin-bottom:10px}
-    .seat-section-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;padding:4px 8px;background:var(--bg);border-radius:6px}
-    .seat-map{display:grid;grid-template-columns:repeat(14,1fr);gap:2px}
-    .seat-map-g{display:grid;grid-template-columns:repeat(12,1fr);gap:2px}
-    .seat{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent}
+    .seat-section-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;padding:3px 8px;background:var(--bg);border-radius:6px}
+    .seat-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(0,1fr));gap:2px;width:100%}
+    .seat-map-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(0,1fr));gap:2px;width:100%}
+    .seat-map{grid-template-columns:repeat(12,minmax(0,1fr))}
+    .seat-map-g{grid-template-columns:repeat(10,minmax(0,1fr))}
+    .seat{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent;-webkit-text-size-adjust:none;text-size-adjust:none}
     .seat:active{transform:scale(.88)}
     .seat.empty{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
     .seat.full{background:var(--p);color:#fff}
@@ -261,7 +263,7 @@
         <div class="legend-item"><div class="legend-dot" style="background:#7b1fa2"></div>Evening</div>
         <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,var(--a) 50%,#7b1fa2 50%)"></div>Both</div>
       </div>
-      <div style="overflow-x:auto">
+      <div style="width:100%;overflow:hidden">
         <div class="seat-section"><div class="seat-section-title">Seats 1–84</div><div class="seat-map" id="seatMap1"></div></div>
         <div class="seat-section"><div class="seat-section-title">Ground Floor G1–G47</div><div class="seat-map-g" id="seatMapG"></div></div>
       </div>
@@ -858,28 +860,32 @@ function updateSeatMap(){
     const el=document.getElementById('seatG-'+i);
     if(el){el.className='seat empty';el.title='';}
   }
-  
-  // Group students by seat
+
+  // Group students by seat - normalize key carefully
   const seatGroups={};
   window._students.forEach(s=>{
-    const key=(s.seatPrefix||'')+String(s.seat);
+    // seatPrefix is 'G' or '' and seat is a number
+    const prefix = s.seatPrefix || '';
+    const num = parseInt(s.seat);
+    const key = prefix + num; // e.g. "5" or "G12"
     if(!seatGroups[key]) seatGroups[key]=[];
     seatGroups[key].push(s);
   });
-  
-  // Apply colors based on occupancy
+
+  // Apply colors
   Object.entries(seatGroups).forEach(([key,students])=>{
-    const isG=key.startsWith('G');
-    const num=isG?key.substring(1):key;
-    const el=document.getElementById((isG?'seatG-':'seat-')+num);
+    const isG = key.startsWith('G');
+    const num = isG ? key.substring(1) : key;
+    const elId = (isG ? 'seatG-' : 'seat-') + num;
+    const el = document.getElementById(elId);
     if(!el) return;
-    
-    const slots=students.map(s=>s.slot);
-    const names=students.map(s=>s.name).join(' & ');
-    
+
+    const slots = students.map(s=>s.slot);
+    const names = students.map(s=>s.name+' ('+s.slot+')').join(' | ');
+
     if(slots.includes('full')){
       el.className='seat full';
-    } else if(slots.includes('morning')&&slots.includes('evening')){
+    } else if(slots.includes('morning') && slots.includes('evening')){
       el.className='seat both';
     } else if(slots.includes('morning')){
       el.className='seat morning';
@@ -909,12 +915,13 @@ function populateSeatSelect(currentSeat=''){
   const slot=document.getElementById('stuSlot').value;
   sel.innerHTML='<option value="">Select seat</option>';
   
-  // Build occupied map - group by seat key
+  // Build occupied map - group by seat key (normalized)
   const occupied={};
   window._students.forEach(s=>{
-    // Skip current student being edited
     if(window._editMode && s.id===window._curStuId) return;
-    const key=(s.seatPrefix||'')+String(s.seat);
+    const prefix=s.seatPrefix||'';
+    const num=parseInt(s.seat);
+    const key=prefix+num;
     if(!occupied[key]) occupied[key]=[];
     occupied[key].push(s.slot);
   });
@@ -1067,7 +1074,14 @@ extendAdmission=async function(){
 // ===== DASHBOARD =====
 function updateDashboard(){
   const total=131;
-  const occ=window._students.length;
+  const totalStudents=window._students.length;
+
+  // Count unique occupied seats (a seat with morning+evening = 1 occupied seat)
+  const uniqueSeats=new Set(
+    window._students.map(s=>(s.seatPrefix||'')+parseInt(s.seat))
+  );
+  const occ=uniqueSeats.size;
+
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
@@ -1075,7 +1089,7 @@ function updateDashboard(){
 
   document.getElementById('statOcc').textContent=occ;
   document.getElementById('statVac').textContent=total-occ;
-  document.getElementById('statStu').textContent=occ;
+  document.getElementById('statStu').textContent=totalStudents;
   document.getElementById('statRev').textContent=rev.toLocaleString('en-IN');
   document.getElementById('statPaid').textContent=paid;
   document.getElementById('statDue').textContent=due;
