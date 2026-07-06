@@ -10,7 +10,6 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
   <style>
-    html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
     *{margin:0;padding:0;box-sizing:border-box}
     :root{
       --p:#1a3a6b;--pl:#2657a8;--pd:#0d1f3c;
@@ -56,11 +55,11 @@
     .stat-label{font-size:10px;color:var(--muted);font-weight:500}
 
     /* SEAT MAP */
-    .seat-section{margin-bottom:10px;width:100%}
+    .seat-section{margin-bottom:10px}
     .seat-section-title{font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px;padding:4px 8px;background:var(--bg);border-radius:6px}
-    .seat-map{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px;width:100%}
-    .seat-map-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;width:100%}
-    .seat{aspect-ratio:1;min-width:0;min-height:0;width:100%;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;line-height:1;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent;overflow:hidden;white-space:nowrap}
+    .seat-map{display:grid;grid-template-columns:repeat(14,1fr);gap:2px}
+    .seat-map-g{display:grid;grid-template-columns:repeat(12,1fr);gap:2px}
+    .seat{aspect-ratio:1;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent}
     .seat:active{transform:scale(.88)}
     .seat.empty{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
     .seat.full{background:var(--p);color:#fff}
@@ -145,7 +144,7 @@
     .alert-info{background:#dbeafe;border-left:4px solid #3b82f6}
 
     /* RECEIPT */
-    .receipt{font-family:'Courier New',monospace;background:#fff;color:#000;padding:16px;border-radius:10px;border:2px dashed #ccc;margin-bottom:12px;font-size:11px}
+    .receipt{font-family:'Courier New',monospace;background:#fff;color:#000;padding:20px;border-radius:10px;border:2px dashed #ccc;margin-bottom:12px;font-size:12px;box-shadow:0 2px 8px rgba(0,0,0,0.08)}
     .receipt-title{text-align:center;font-size:14px;font-weight:bold;margin-bottom:2px}
     .receipt-sub{text-align:center;font-size:10px;margin-bottom:10px;color:#555}
     .receipt-row{display:flex;justify-content:space-between;padding:2px 0;border-bottom:1px dotted #ddd}
@@ -542,8 +541,7 @@
     <div class="modal-handle"></div>
     <div class="modal-title">🧾 Fee Receipt</div>
     <div class="receipt" id="receiptContent"></div>
-    <button class="btn btn-wa" onclick="sendReceiptWA()">💬 Send via WhatsApp</button>
-    <button class="btn btn-p" style="margin-top:8px" onclick="dlReceipt()">⬇️ Download</button>
+    <button class="btn btn-p" onclick="shareReceiptPNG()">📤 Share Receipt Image</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('receiptModal')">Close</button>
   </div>
 </div>
@@ -690,6 +688,9 @@ function sendWADirect(p,n,f,s) { if(window._sendWADirect) window._sendWADirect(p
 function showReceipt() { if(window._showReceipt) window._showReceipt(); }
 function sendReceiptWA() { if(window._sendReceiptWA) window._sendReceiptWA(); }
 function dlReceipt() { if(window._dlReceipt) window._dlReceipt(); }
+function dlReceiptPNG() { if(window._dlReceiptPNG) window._dlReceiptPNG(); }
+function dlReceiptPNGAndWA() { if(window._dlReceiptPNGAndWA) window._dlReceiptPNGAndWA(); }
+function shareReceiptPNG() { if(window._shareReceiptPNG) window._shareReceiptPNG(); }
 function editStudent() { if(window._editStudent) window._editStudent(); }
 function deleteStudent() { if(window._deleteStudent) window._deleteStudent(); }
 function showStudentQR() { if(window._showStudentQR) window._showStudentQR(); }
@@ -1066,9 +1067,7 @@ extendAdmission=async function(){
 // ===== DASHBOARD =====
 function updateDashboard(){
   const total=131;
-  const occSeats=new Set(window._students.map(s=>(s.seatPrefix||'')+s.seat));
-  const occ=occSeats.size;
-  const stu=window._students.length;
+  const occ=window._students.length;
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
@@ -1076,7 +1075,7 @@ function updateDashboard(){
 
   document.getElementById('statOcc').textContent=occ;
   document.getElementById('statVac').textContent=total-occ;
-  document.getElementById('statStu').textContent=stu;
+  document.getElementById('statStu').textContent=occ;
   document.getElementById('statRev').textContent=rev.toLocaleString('en-IN');
   document.getElementById('statPaid').textContent=paid;
   document.getElementById('statDue').textContent=due;
@@ -1283,7 +1282,8 @@ sendWA=function(){
 };
 
 sendWADirect=function(phone,name,fee,seat){
-  const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear ${name},\n\nYour library membership fee of *₹${fee}* is due.\nSeat No: *${seat}*\n\nPlease pay at the earliest to continue using the library.\n\n💳 UPI ID: *${UPI_ID}*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
+  const upiLink=`upi://pay?pa=${UPI_ID}&pn=${encodeURIComponent(UPI_NAME)}&am=${fee}&cu=INR&tn=${encodeURIComponent('LibFee-'+name)}`;
+  const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear ${name},\n\nYour library membership fee of *₹${fee}* is due.\nSeat No: *${seat}*\n\nPlease pay at the earliest to continue using the library.\n\n💳 *Pay via UPI:*\n${upiLink}\n\nOr UPI ID: *${UPI_ID}*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
   window.open(`https://wa.me/91${phone}?text=${encodeURIComponent(msg)}`,'_blank');
 };
 
@@ -1338,41 +1338,19 @@ showReceipt=function(){
   document.getElementById('receiptModal').classList.add('open');
 };
 
-async function renderReceiptCanvas(){
-  const el=document.getElementById('receiptContent');
-  return await html2canvas(el,{scale:3,backgroundColor:'#ffffff'});
-}
-
-sendReceiptWA=async function(){
+sendReceiptWA=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
-  const caption=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nWe have received your payment for:\n\n👤 Name: ${s.name}\n🪑 Seat No: ${seatLabel}\n⏰ Slot: ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})\n📅 Period: ${s.admFrom||'-'} to ${s.admTo||'-'}\n💰 Amount Paid: ₹${(s.fee||0).toLocaleString('en-IN')}\n\nThank You!\nGurukrupa Library, Nagpur`;
-  try{
-    const canvas=await renderReceiptCanvas();
-    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-    // Save image straight to the phone's gallery/downloads
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=`Receipt-${s.name}-${seatLabel}.png`;a.click();
-    showToast('Receipt image saved! Opening WhatsApp — tap 📎 to attach it.');
-  }catch(err){
-    showToast('Could not generate image, sending text instead.');
-  }
-  // Go straight to this student's WhatsApp chat (no generic share picker)
-  window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(caption)}`,'_blank');
+  const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nगुरुकृपा पुस्तकालय आपका स्वागत करती है!\nGurukrupa Library welcomes you!\n\n✅ We have received your payment for:\n\n👤 Name: ${s.name}\n🪑 Seat No: ${seatLabel}\n⏰ Slot: ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})\n📅 Period: ${s.admFrom||'-'} to ${s.admTo||'-'}\n💰 Amount Paid: ₹${(s.fee||0).toLocaleString('en-IN')}\n\n🙏 धन्यवाद / Thank You!\nGurukrupa Library, Nagpur`;
+  window.open(`https://wa.me/91${s.phone}?text=${encodeURIComponent(msg)}`,'_blank');
 };
 
-dlReceipt=async function(){
-  try{
-    const canvas=await renderReceiptCanvas();
-    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='receipt.png';a.click();
-    showToast('Receipt downloaded!');
-  }catch(err){
-    const content=document.getElementById('receiptContent').innerText;
-    const blob=new Blob([content],{type:'text/plain'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='receipt.txt';a.click();
-    showToast('Receipt downloaded!');
-  }
+dlReceipt=function(){
+  const content=document.getElementById('receiptContent').innerText;
+  const blob=new Blob([content],{type:'text/plain'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='receipt.txt';a.click();
+  showToast('Receipt downloaded!');
 };
 
 // ===== STUDENT QR =====
@@ -1870,6 +1848,61 @@ function loadTheme(){
   setTheme(saved);
 }
 
+// ===== RECEIPT PNG GENERATION =====
+async function generateReceiptPNG(){
+  const el=document.getElementById('receiptContent');
+  // Temporarily make receipt white background for capture
+  el.style.background='#ffffff';
+  try{
+    const canvas=await html2canvas(el,{
+      scale:2,
+      backgroundColor:'#ffffff',
+      useCORS:true,
+      allowTaint:true,
+      logging:false
+    });
+    el.style.background='';
+    return canvas.toDataURL('image/png');
+  } catch(e){
+    el.style.background='';
+    console.error('Canvas error:',e);
+    return null;
+  }
+}
+
+dlReceiptPNG=async function(){
+  showToast('Generating image...');
+  const png=await generateReceiptPNG();
+  if(!png){showToast('Error generating image');return;}
+  const a=document.createElement('a');
+  a.href=png;
+  const s=window._students.find(x=>x.id===window._curStuId);
+  a.download=`Receipt-${s?s.name.replace(/ /g,'_'):'Student'}.png`;
+  a.click();
+  showToast('Receipt image downloaded! ✅');
+};
+
+dlReceiptPNGAndWA=async function(){
+  const s=window._students.find(x=>x.id===window._curStuId);
+  if(!s){showToast('Error: Student not found');return;}
+  showToast('Generating image...');
+  const png=await generateReceiptPNG();
+  if(png){
+    // Download the image
+    const a=document.createElement('a');
+    a.href=png;
+    a.download=`Receipt-${s.name.replace(/ /g,'_')}.png`;
+    a.click();
+  }
+  // Wait briefly then open WhatsApp
+  setTimeout(()=>{
+    const seatLabel=(s.seatPrefix||'')+s.seat;
+    const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 🙏\n\n✅ Payment received for:\n👤 ${s.name}\n🪑 Seat No: ${seatLabel}\n💰 Amount: Rs.${(s.fee||0).toLocaleString('en-IN')}\n📅 Period: ${s.admFrom||''} to ${s.admTo||''}\n\n📎 Receipt image has been downloaded.\nPlease attach it to this message.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
+    window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(msg),'_blank');
+    showToast('Image downloaded! Attach it in WhatsApp 📎');
+  },1500);
+};
+
 // ===== WIRE UP ALL GLOBAL CALLBACKS =====
 window._filterFees=filterFees;
 window._loadAttendance=loadAttendance;
@@ -1895,6 +1928,9 @@ window._redrawChart=function(){if(window._chart){window._chart.destroy();window.
 window._showReceipt=showReceipt;
 window._sendReceiptWA=sendReceiptWA;
 window._dlReceipt=dlReceipt;
+window._dlReceiptPNG=dlReceiptPNG;
+window._dlReceiptPNGAndWA=dlReceiptPNGAndWA;
+window._shareReceiptPNG=shareReceiptPNG;
 window._editStudent=editStudent;
 window._deleteStudent=deleteStudent;
 window._showStudentQR=showStudentQR;
