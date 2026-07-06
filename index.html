@@ -506,7 +506,7 @@
       <button class="btn btn-err btn-sm" onclick="markFeeUnpaid()">↩️ Mark Unpaid</button>
     </div>
     <div class="detail-actions">
-      <button class="btn btn-wa btn-sm" onclick="sendWA()">💬 WhatsApp</button>
+      <button class="btn btn-wa btn-sm" onclick="sendWA()">🔔 Reminder</button>
       <button class="btn btn-a btn-sm" onclick="showReceipt()">🧾 Receipt</button>
     </div>
     <div class="detail-actions">
@@ -570,7 +570,7 @@
       <div style="font-size:12px;color:var(--muted)">App Link:</div>
       <div style="font-size:11px;color:var(--p);word-break:break-all" id="appLinkText"></div>
     </div>
-    <button class="btn btn-wa" onclick="shareAppLink()">💬 Share via WhatsApp</button>
+    <button class="btn btn-wa" onclick="shareAppLink()">💬 Share App Link</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('qrModal')">Close</button>
   </div>
 </div>
@@ -1102,7 +1102,7 @@ function updateDashboard(){
     const days=Math.ceil((new Date(toISO(s.admTo))-new Date())/(1000*60*60*24));
     return `<div class="alert alert-warn">
       <div><div style="font-weight:700;font-size:12px">${s.name}</div><div style="font-size:10px">Seat ${(s.seatPrefix||'')+s.seat} — Due in ${days} day(s) (${s.admTo})</div></div>
-      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">💬</button>
+      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
     </div>`;
   }).join('');
 
@@ -1626,7 +1626,7 @@ function renderFeeList(list){
         <span class="badge ${s.feeStatus==='paid'?'b-paid':isExpiring(s)?'b-exp':'b-due'}">${s.feeStatus==='paid'?'Paid':isExpiring(s)?'Expiring':'Due'}</span>
         <div style="display:flex;gap:3px">
           ${s.feeStatus!=='paid'?`<button class="btn btn-ok btn-xs" onclick="quickPay('${s.id}')">Collect</button>`:''}
-          <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">💬</button>
+          <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">🔔</button>
         </div>
       </div>
     </div>`;
@@ -1650,7 +1650,7 @@ function renderDuesList(){
     const seatLabel=(s.seatPrefix||'')+s.seat;
     return `<div class="fee-row">
       <div><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}</div></div>
-      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">💬 Remind</button>
+      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">🔔 Remind</button>
     </div>`;
   }).join('');
 }
@@ -1921,37 +1921,35 @@ shareReceiptPNG=async function(){
   const s=window._students.find(x=>x.id===window._curStuId);
   if(!s){showToast('Student not found');return;}
   showToast('Generating receipt image...');
-  const canvas=await generateReceiptPNG();
-  if(!canvas){showToast('Error generating image. Try again.');return;}
-  const filename='Receipt-'+s.name.replace(/ /g,'_')+'.png';
-  canvas.toBlob(async function(blob){
-    if(!blob){showToast('Error creating image');return;}
-    const file=new File([blob],filename,{type:'image/png'});
-    if(navigator.share && navigator.canShare && navigator.canShare({files:[file]})){
+  try{
+    const canvas=await generateReceiptPNG();
+    if(!canvas){showToast('Error generating image');return;}
+    const filename='Receipt-'+s.name.replace(/ /g,'_')+'.png';
+    // Convert canvas to blob
+    canvas.toBlob(async function(blob){
+      if(!blob){showToast('Error creating image');return;}
+      // Try Web Share API (works on Android Chrome & iOS Safari)
       try{
-        await navigator.share({
-          files:[file],
-          title:'Fee Receipt - Gurukrupa Library',
-          text:'Fee Receipt from Gurukrupa Library & Study Circle, Nagpur.'
-        });
-        showToast('Shared! ✅');
-      } catch(e){
-        if(e.name!=='AbortError'){
-          const url=URL.createObjectURL(blob);
-          const a=document.createElement('a');
-          a.href=url; a.download=filename; a.click();
-          URL.revokeObjectURL(url);
-          showToast('Downloaded! Share from gallery 📎');
+        const file=new File([blob],filename,{type:'image/png'});
+        if(navigator.share && navigator.canShare({files:[file]})){
+          await navigator.share({files:[file],title:'Fee Receipt'});
+          showToast('Shared! ✅');
+          return;
         }
+      } catch(shareErr){
+        if(shareErr.name==='AbortError') return; // user cancelled
       }
-    } else {
+      // Fallback: download image
       const url=URL.createObjectURL(blob);
       const a=document.createElement('a');
       a.href=url; a.download=filename; a.click();
-      URL.revokeObjectURL(url);
-      showToast('Receipt saved! Share from your gallery 📎');
-    }
-  },'image/png');
+      setTimeout(()=>URL.revokeObjectURL(url),1000);
+      showToast('Receipt saved to Downloads! Share from gallery 📎');
+    },'image/png');
+  } catch(e){
+    showToast('Error: '+e.message);
+    console.error(e);
+  }
 };
 
 // ===== WIRE UP ALL GLOBAL CALLBACKS =====
