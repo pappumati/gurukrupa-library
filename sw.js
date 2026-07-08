@@ -1,28 +1,22 @@
-const CACHE_NAME = 'gurukrupa-v1';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/manifest.json'
-];
-
-self.addEventListener('install', e => {
+const CACHE='gurukrupa-v3';
+const BASE='/gurukrupa-library';
+const ASSETS=[BASE+'/',BASE+'/index.html',BASE+'/manifest.json'];
+self.addEventListener('install',e=>{
   e.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS))
+    caches.open(CACHE).then(c=>{
+      return Promise.all(ASSETS.map(url=>
+        fetch(url).then(r=>c.put(url,r)).catch(()=>{})
+      ));
+    })
   );
   self.skipWaiting();
 });
-
-self.addEventListener('activate', e => {
-  e.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(keys=>
+    Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))
+  ));
   self.clients.claim();
 });
-
-self.addEventListener('fetch', e => {
-  e.respondWith(
-    fetch(e.request).catch(() => caches.match(e.request))
-  );
+self.addEventListener('fetch',e=>{
+  e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)));
 });

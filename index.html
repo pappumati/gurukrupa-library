@@ -457,18 +457,18 @@
     <div class="form-group"><label class="form-label">Phone *</label><input type="tel" class="form-control" id="stuPhone" placeholder="10-digit" maxlength="10"/></div>
     <div class="form-group"><label class="form-label">Address</label><input type="text" class="form-control" id="stuAddress" placeholder="Address"/></div>
     <div class="form-group">
-      <label class="form-label">Seat Number *</label>
-      <select class="form-control" id="stuSeat">
-        <option value="">Select seat</option>
-      </select>
-    </div>
-    <div class="form-group">
       <label class="form-label">Slot Type *</label>
       <select class="form-control" id="stuSlot" onchange="onSlotChange()">
-        <option value="">Select slot</option>
+        <option value="">Select slot first</option>
         <option value="full">Full Time (7AM–11PM)</option>
         <option value="morning">Morning Half (7AM–2PM)</option>
         <option value="evening">Evening Half (2PM–11PM)</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label class="form-label">Seat Number *</label>
+      <select class="form-control" id="stuSeat">
+        <option value="">Select seat</option>
       </select>
     </div>
     <div class="form-group"><label class="form-label">Monthly Fee (₹) *</label><input type="number" class="form-control" id="stuFee" placeholder="Enter fee amount"/></div>
@@ -1365,35 +1365,72 @@ showReceipt=function(){
   document.getElementById('receiptModal').classList.add('open');
 };
 
+async function renderReceiptCanvas(){
+  const el=document.getElementById('receiptContent');
+  el.style.background='#ffffff';
+  el.style.color='#000000';
+  await new Promise(r=>setTimeout(r,400));
+  try{
+    const canvas=await html2canvas(el,{
+      scale:3,
+      backgroundColor:'#ffffff',
+      useCORS:true,
+      allowTaint:true,
+      logging:false,
+      imageTimeout:8000
+    });
+    el.style.background='';
+    el.style.color='';
+    return canvas;
+  }catch(e){
+    el.style.background='';
+    el.style.color='';
+    console.error('Canvas error:',e);
+    return null;
+  }
+}
+
 sendReceiptWA=async function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM-11PM':s.slot==='morning'?'7AM-2PM':'2PM-11PM';
   const caption='🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you!\n\nWe have received your payment for:\n\n👤 Name: '+s.name+'\n🪑 Seat No: '+seatLabel+'\n⏰ Slot: '+(s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half')+' ('+slotTime+')\n📅 Period: '+(s.admFrom||'-')+' to '+(s.admTo||'-')+'\n💰 Amount Paid: ₹'+(s.fee||0).toLocaleString('en-IN')+'\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  showToast('Generating receipt image...');
   try{
     const canvas=await renderReceiptCanvas();
-    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
-    const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='Receipt-'+s.name.replace(/ /g,'_')+'-'+seatLabel+'.png';
-    a.click();
-    showToast('Receipt saved! Opening WhatsApp — tap 📎 to attach.');
+    if(canvas){
+      const dataURL=canvas.toDataURL('image/png');
+      const a=document.createElement('a');
+      a.href=dataURL;
+      a.download='Receipt-'+s.name.replace(/ /g,'_')+'.png';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast('✅ Receipt saved! Open WhatsApp & tap 📎 to attach it.');
+      await new Promise(r=>setTimeout(r,1500));
+    }
   }catch(err){
-    showToast('Opening WhatsApp...');
+    console.error('Receipt error:',err);
   }
   window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(caption),'_blank');
 };
 
 dlReceipt=async function(){
+  showToast('Generating receipt...');
   try{
     const canvas=await renderReceiptCanvas();
-    const blob=await new Promise(res=>canvas.toBlob(res,'image/png'));
+    if(!canvas){showToast('Error generating receipt');return;}
+    const dataURL=canvas.toDataURL('image/png');
     const a=document.createElement('a');
-    a.href=URL.createObjectURL(blob);
-    a.download='receipt.png'; a.click();
+    a.href=dataURL;
+    a.download='receipt.png';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
     showToast('Receipt downloaded! ✅');
   }catch(err){
-    showToast('Error downloading receipt');
+    showToast('Error: '+err.message);
+    console.error(err);
   }
 };
 
@@ -1550,8 +1587,9 @@ approveApplication=async function(){
   
   // Send WhatsApp
   const slotTime=p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
-  const msg=`🙏 *Gurukrupa Library & Study Circle*\n\n✅ *Admission Confirmed!*\n\nDear ${p.name},\n\nYour admission has been confirmed!\n\n🪑 Seat No: *${seatVal}*\n⏰ Slot: ${p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})\n📅 Admission Period: *${admFrom} to ${admTo}*\n💰 Monthly Fee: Rs.${fee}\n\nPlease arrive on time. Library timings: ${slotTime}.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
-  window.open(`https://wa.me/91${p.phone}?text=${encodeURIComponent(msg)}`,'_blank');
+  const slotName=p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half';
+  const msg='🙏 *Gurukrupa Library & Study Circle*\n\n✅ *Admission Confirmed!*\n\nDear '+p.name+',\n\nYour admission has been confirmed!\n\n🪑 Seat No: *'+seatVal+'*\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Admission Period: *'+admFrom+' to '+admTo+'*\n💰 Monthly Fee: Rs.'+fee+'\n\nPlease arrive on time. Library timings: '+slotTime+'.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  window.open('https://wa.me/91'+p.phone+'?text='+encodeURIComponent(msg),'_blank');
   
   showToast('Approved & WhatsApp sent! ✅');
   closeModal('approvalModal');
