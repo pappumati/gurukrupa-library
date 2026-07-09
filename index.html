@@ -356,7 +356,7 @@
           </select>
         </div>
         <div class="form-group"><label class="form-label">Amount (₹)</label><input type="number" class="form-control" id="expAmount" placeholder="Enter amount"/></div>
-        <div class="form-group"><label class="form-label">Date (DD-MM-YYYY)</label><input type="text" class="form-control" id="expDate" placeholder="e.g. 01-07-2026"/></div>
+        <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-control" id="expDate"/></div>
         <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-control" id="expNote" placeholder="Optional note"/></div>
         <button class="btn btn-p" onclick="saveExpense()">Save Expense</button>
       </div>
@@ -472,8 +472,8 @@
       </select>
     </div>
     <div class="form-group"><label class="form-label">Monthly Fee (₹) *</label><input type="number" class="form-control" id="stuFee" placeholder="Enter fee amount"/></div>
-    <div class="form-group"><label class="form-label">Admission From (DD-MM-YYYY) *</label><input type="text" class="form-control" id="stuFrom" placeholder="e.g. 01-07-2026"/></div>
-    <div class="form-group"><label class="form-label">Admission To (DD-MM-YYYY) *</label><input type="text" class="form-control" id="stuTo" placeholder="e.g. 31-07-2026"/></div>
+    <div class="form-group"><label class="form-label">Admission From *</label><input type="date" class="form-control" id="stuFrom"/></div>
+    <div class="form-group"><label class="form-label">Admission To *</label><input type="date" class="form-control" id="stuTo"/></div>
     <div class="form-group"><label class="form-label">ID Proof Type</label>
       <select class="form-control" id="stuIdType">
         <option value="">Select ID</option>
@@ -527,8 +527,8 @@
       <select class="form-control" id="approvalSeat"><option value="">Select available seat</option></select>
     </div>
     <div class="form-group"><label class="form-label">Monthly Fee (₹) *</label><input type="number" class="form-control" id="approvalFee" placeholder="Enter fee amount"/></div>
-    <div class="form-group"><label class="form-label">Admission From (DD-MM-YYYY) *</label><input type="text" class="form-control" id="approvalFrom" placeholder="e.g. 01-07-2026"/></div>
-    <div class="form-group"><label class="form-label">Admission To (DD-MM-YYYY) *</label><input type="text" class="form-control" id="approvalTo" placeholder="e.g. 31-07-2026"/></div>
+    <div class="form-group"><label class="form-label">Admission From *</label><input type="date" class="form-control" id="approvalFrom"/></div>
+    <div class="form-group"><label class="form-label">Admission To *</label><input type="date" class="form-control" id="approvalTo"/></div>
     <button class="btn btn-ok" onclick="approveApplication()">✅ Approve & Send WhatsApp</button>
     <button class="btn btn-err" style="margin-top:8px" onclick="rejectApplication()">❌ Reject Application</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('approvalModal')">Cancel</button>
@@ -541,8 +541,8 @@
     <div class="modal-handle"></div>
     <div class="modal-title">🧾 Fee Receipt</div>
     <div class="receipt" id="receiptContent"></div>
-    <button class="btn btn-wa" onclick="sendReceiptWA()">💬 Send via WhatsApp</button>
-    <button class="btn btn-p" style="margin-top:8px" onclick="dlReceipt()">⬇️ Download Receipt</button>
+    <button class="btn btn-p" onclick="dlReceipt()">⬇️ Step 1: Download Receipt PNG</button>
+    <button class="btn btn-wa" style="margin-top:8px" onclick="sendReceiptWA()">💬 Step 2: Send via WhatsApp</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('receiptModal')">Close</button>
   </div>
 </div>
@@ -1171,9 +1171,9 @@ openAddStudent=function(){
   document.getElementById('stuSlot').value='';
   document.getElementById('stuIdType').value='';
   document.getElementById('stuFee').value='';
-  document.getElementById('stuFrom').value=todayDDMMYYYY();
+  document.getElementById('stuFrom').value=new Date().toISOString().split('T')[0];
   const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
-  document.getElementById('stuTo').value=`${String(nxt.getDate()).padStart(2,'0')}-${String(nxt.getMonth()+1).padStart(2,'0')}-${nxt.getFullYear()}`;
+  document.getElementById('stuTo').value=nxt.toISOString().split('T')[0];
   document.getElementById('stuPhotoDiv').innerHTML='<span style="font-size:22px">🖼️</span><span style="font-size:9px">Gallery</span><input type="file" id="stuPhotoGallery" accept="image/*" style="display:none" onchange="handleStuPhoto(event)"/>';
   document.getElementById('stuPhotoPreview').style.display='none';
   populateSeatSelect();
@@ -1218,9 +1218,18 @@ saveStudent=async function(){
   const seatVal=document.getElementById('stuSeat').value;
   const slot=document.getElementById('stuSlot').value;
   const fee=parseFloat(document.getElementById('stuFee').value);
-  const admFrom=document.getElementById('stuFrom').value;
-  const admTo=document.getElementById('stuTo').value;
-  if(!name||!phone||!seatVal||!slot||!fee||!admFrom||!admTo){showToast('Fill all required fields');return;}
+  const admFromRaw=document.getElementById('stuFrom').value;
+  const admToRaw=document.getElementById('stuTo').value;
+  if(!name||!phone||!seatVal||!slot||!fee||!admFromRaw||!admToRaw){showToast('Fill all required fields');return;}
+  // Convert ISO to DD-MM-YYYY for storage
+  function isoToDDMMYYYY(iso){
+    if(!iso) return '';
+    const p=iso.split('-');
+    if(p.length===3&&p[0].length===4) return p[2]+'-'+p[1]+'-'+p[0];
+    return iso;
+  }
+  const admFrom=isoToDDMMYYYY(admFromRaw);
+  const admTo=isoToDDMMYYYY(admToRaw);
   if(phone.length!==10){showToast('Enter valid 10-digit phone');return;}
   if(!window._photo&&!window._editMode){showToast('📷 Photo is required!');return;}
 
@@ -1324,8 +1333,15 @@ editStudent=function(){
   document.getElementById('stuAddress').value=s.address||'';
   document.getElementById('stuSlot').value=s.slot;
   document.getElementById('stuFee').value=s.fee||'';
-  document.getElementById('stuFrom').value=s.admFrom||'';
-  document.getElementById('stuTo').value=s.admTo||'';
+  // Convert DD-MM-YYYY to ISO for date picker
+  function ddmmToISO(dd){
+    if(!dd) return '';
+    const p=dd.split('-');
+    if(p.length===3&&p[0].length===2) return p[2]+'-'+p[1]+'-'+p[0];
+    return dd;
+  }
+  document.getElementById('stuFrom').value=ddmmToISO(s.admFrom||'');
+  document.getElementById('stuTo').value=ddmmToISO(s.admTo||'');
   document.getElementById('stuIdType').value=s.idType||'';
   document.getElementById('stuIdNum').value=s.idNumber||'';
   if(s.photoUrl){window._photo=s.photoUrl;document.getElementById('stuPhotoImg').src=s.photoUrl;document.getElementById('stuPhotoPreview').style.display='block';}
@@ -1390,44 +1406,30 @@ async function renderReceiptCanvas(){
   }
 }
 
-sendReceiptWA=async function(){
+sendReceiptWA=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM-11PM':s.slot==='morning'?'7AM-2PM':'2PM-11PM';
-  const caption='🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you!\n\nWe have received your payment for:\n\n👤 Name: '+s.name+'\n🪑 Seat No: '+seatLabel+'\n⏰ Slot: '+(s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half')+' ('+slotTime+')\n📅 Period: '+(s.admFrom||'-')+' to '+(s.admTo||'-')+'\n💰 Amount Paid: ₹'+(s.fee||0).toLocaleString('en-IN')+'\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
-  showToast('Generating receipt image...');
-  try{
-    const canvas=await renderReceiptCanvas();
-    if(canvas){
-      const dataURL=canvas.toDataURL('image/png');
-      const a=document.createElement('a');
-      a.href=dataURL;
-      a.download='Receipt-'+s.name.replace(/ /g,'_')+'.png';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showToast('✅ Receipt saved! Open WhatsApp & tap 📎 to attach it.');
-      await new Promise(r=>setTimeout(r,1500));
-    }
-  }catch(err){
-    console.error('Receipt error:',err);
-  }
+  const slotName=s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half';
+  const caption='🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 🙏\n\nWe have received your payment for:\n\n👤 Name: '+s.name+'\n🪑 Seat No: '+seatLabel+'\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Period: '+(s.admFrom||'-')+' to '+(s.admTo||'-')+'\n💰 Amount Paid: Rs.'+(s.fee||0)+'\n\nPlease attach the downloaded receipt image.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(caption),'_blank');
 };
 
 dlReceipt=async function(){
-  showToast('Generating receipt...');
+  const s=window._students.find(x=>x.id===window._curStuId);
+  const name=s?s.name.replace(/ /g,'_'):'Student';
+  showToast('Generating receipt image...');
   try{
     const canvas=await renderReceiptCanvas();
-    if(!canvas){showToast('Error generating receipt');return;}
+    if(!canvas){showToast('Error generating receipt. Try again.');return;}
     const dataURL=canvas.toDataURL('image/png');
     const a=document.createElement('a');
     a.href=dataURL;
-    a.download='receipt.png';
+    a.download='Receipt-'+name+'.png';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    showToast('Receipt downloaded! ✅');
+    showToast('✅ Receipt downloaded! Now tap Step 2.');
   }catch(err){
     showToast('Error: '+err.message);
     console.error(err);
@@ -1554,9 +1556,9 @@ openApproval=async function(id){
     if(avail){const o=document.createElement('option');o.value=k;o.textContent='G'+i+' (Ground)';approvalSel.appendChild(o);}
   }
   
-  document.getElementById('approvalFrom').value=todayDDMMYYYY();
-  const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
-  document.getElementById('approvalTo').value=`${String(nxt.getDate()).padStart(2,'0')}-${String(nxt.getMonth()+1).padStart(2,'0')}-${nxt.getFullYear()}`;
+  document.getElementById('approvalFrom').value=new Date().toISOString().split('T')[0];
+  const nxt2=new Date(); nxt2.setMonth(nxt2.getMonth()+1);
+  document.getElementById('approvalTo').value=nxt2.toISOString().split('T')[0];
   document.getElementById('approvalModal').classList.add('open');
   window._curAppData=p;
 };
@@ -1564,9 +1566,17 @@ openApproval=async function(id){
 approveApplication=async function(){
   const seatVal=document.getElementById('approvalSeat').value;
   const fee=parseFloat(document.getElementById('approvalFee').value);
-  const admFrom=document.getElementById('approvalFrom').value;
-  const admTo=document.getElementById('approvalTo').value;
-  if(!seatVal||!fee||!admFrom||!admTo){showToast('Fill all fields');return;}
+  const admFromRaw2=document.getElementById('approvalFrom').value;
+  const admToRaw2=document.getElementById('approvalTo').value;
+  if(!seatVal||!fee||!admFromRaw2||!admToRaw2){showToast('Fill all fields');return;}
+  function isoToDD(iso){
+    if(!iso) return '';
+    const p=iso.split('-');
+    if(p.length===3&&p[0].length===4) return p[2]+'-'+p[1]+'-'+p[0];
+    return iso;
+  }
+  const admFrom=isoToDD(admFromRaw2);
+  const admTo=isoToDD(admToRaw2);
   
   const p=window._curAppData;
   const {seat,seatPrefix}=parseSeatValue(seatVal);
@@ -1589,9 +1599,11 @@ approveApplication=async function(){
   const slotTime=p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
   const slotName=p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half';
   const msg='🙏 *Gurukrupa Library & Study Circle*\n\n✅ *Admission Confirmed!*\n\nDear '+p.name+',\n\nYour admission has been confirmed!\n\n🪑 Seat No: *'+seatVal+'*\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Admission Period: *'+admFrom+' to '+admTo+'*\n💰 Monthly Fee: Rs.'+fee+'\n\nPlease arrive on time. Library timings: '+slotTime+'.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
-  window.open('https://wa.me/91'+p.phone+'?text='+encodeURIComponent(msg),'_blank');
-  
-  showToast('Approved & WhatsApp sent! ✅');
+  // iPhone compatible - use location.href for WhatsApp
+  setTimeout(function(){
+    window.location.href='https://wa.me/91'+p.phone+'?text='+encodeURIComponent(msg);
+  }, 500);
+  showToast('Approved! Opening WhatsApp... ✅');
   closeModal('approvalModal');
   loadStudents();
   loadPending();
@@ -1728,9 +1740,16 @@ function renderDuesList(){
 saveExpense=async function(){
   const cat=document.getElementById('expCat').value;
   const amount=parseFloat(document.getElementById('expAmount').value);
-  const date=document.getElementById('expDate').value;
+  const dateRaw=document.getElementById('expDate').value;
   const note=document.getElementById('expNote').value.trim();
-  if(!amount||!date){showToast('Enter amount and date');return;}
+  if(!amount||!dateRaw){showToast('Enter amount and date');return;}
+  function isoToDDExp(iso){
+    if(!iso) return '';
+    const p=iso.split('-');
+    if(p.length===3&&p[0].length===4) return p[2]+'-'+p[1]+'-'+p[0];
+    return iso;
+  }
+  const date=isoToDDExp(dateRaw);
   await setDoc(doc(collection(db,'expenses')),{cat,amount,date,note,createdAt:new Date().toISOString()});
   showToast('Expense saved! ✅');
   document.getElementById('expAmount').value='';
