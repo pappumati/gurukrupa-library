@@ -428,6 +428,7 @@
     </div>
     <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="regName" placeholder="Your full name"/></div>
     <div class="form-group"><label class="form-label">Phone Number *</label><input type="tel" class="form-control" id="regPhone" placeholder="10-digit number" maxlength="10"/></div>
+    <div class="form-group"><label class="form-label">Alternate Phone</label><input type="tel" class="form-control" id="regAltPhone" placeholder="Alternate mobile (optional)" maxlength="10"/></div>
     <div class="form-group"><label class="form-label">Address *</label><input type="text" class="form-control" id="regAddress" placeholder="Your full address"/></div>
     <div class="form-group">
       <label class="form-label">Preferred Slot *</label>
@@ -476,6 +477,7 @@
     </div>
     <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="stuName" placeholder="Full name"/></div>
     <div class="form-group"><label class="form-label">Phone *</label><input type="tel" class="form-control" id="stuPhone" placeholder="10-digit" maxlength="10"/></div>
+    <div class="form-group"><label class="form-label">Alternate Phone</label><input type="tel" class="form-control" id="stuAltPhone" placeholder="Alternate mobile (optional)" maxlength="10"/></div>
     <div class="form-group"><label class="form-label">Address</label><input type="text" class="form-control" id="stuAddress" placeholder="Address"/></div>
     <div class="form-group">
       <label class="form-label">Slot Type *</label>
@@ -1199,7 +1201,7 @@ openAddStudent=function(){
   window._editMode=false; window._curStuId=null; window._photo=null;
   document.getElementById('addStuTitle').textContent='Add New Student';
   document.getElementById('saveStuBtn').textContent='Save Student';
-  ['stuName','stuPhone','stuAddress','stuIdNum'].forEach(id=>document.getElementById(id).value='');
+  ['stuName','stuPhone','stuAltPhone','stuAddress','stuIdNum'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('stuSlot').value='';
   document.getElementById('stuIdType').value='';
   document.getElementById('stuFee').value='';
@@ -1277,7 +1279,7 @@ saveStudent=async function(){
   if(conflict){showToast(`Seat ${seatVal} already has ${conflict.name} (${conflict.slot})`);return;}
 
   const data={
-    name,phone,seat,seatPrefix,slot,fee,admFrom,admTo,
+    name,phone,altPhone:document.getElementById('stuAltPhone').value.trim(),seat,seatPrefix,slot,fee,admFrom,admTo,
     address:document.getElementById('stuAddress').value.trim(),
     idType:document.getElementById('stuIdType').value,
     idNumber:document.getElementById('stuIdNum').value.trim(),
@@ -1313,6 +1315,7 @@ openStuDetail=function(id){
   const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
   document.getElementById('detailInfo').innerHTML=`
     <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${s.phone||'-'}</span></div>
+    ${s.altPhone?`<div class="info-row"><span class="info-label">Alt Phone</span><span class="info-value">${s.altPhone}</span></div>`:''}
     <div class="info-row"><span class="info-label">Address</span><span class="info-value">${s.address||'-'}</span></div>
     <div class="info-row"><span class="info-label">Seat</span><span class="info-value">${seatLabel}</span></div>
     <div class="info-row"><span class="info-label">Slot</span><span class="info-value">${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})</span></div>
@@ -1362,6 +1365,7 @@ editStudent=function(){
   document.getElementById('saveStuBtn').textContent='Update Student';
   document.getElementById('stuName').value=s.name;
   document.getElementById('stuPhone').value=s.phone||'';
+  document.getElementById('stuAltPhone').value=s.altPhone||'';
   document.getElementById('stuAddress').value=s.address||'';
   document.getElementById('stuSlot').value=s.slot;
   document.getElementById('stuFee').value=s.fee||'';
@@ -1499,6 +1503,7 @@ shareAppLink=function(){
 
 // ===== STUDENT REGISTRATION (Public) =====
 openStudentRegistration=function(){
+  document.getElementById('regAltPhone').value='';
   document.getElementById('stuRegModal').classList.add('open');
 };
 
@@ -1527,7 +1532,7 @@ submitRegistration=async function(){
   if(!window._regPhoto){showToast('📷 Photo is required! Please upload your photo.');return;}
   try{
     await setDoc(doc(collection(db,'applications')),{
-      name,phone,address,slot,idType,idNumber:idNum,
+      name,phone,altPhone:document.getElementById('regAltPhone').value.trim(),address,slot,idType,idNumber:idNum,
       purpose:document.getElementById('regPurpose').value.trim(),
       photoUrl:window._regPhoto||'',
       status:'pending',
@@ -1819,7 +1824,7 @@ dlReport=function(type){
   
   if(type==='students'){
     filename='students.csv';
-    csv='Name,Phone,Seat,Slot,Fee(Rs),Fee Status,Admission From,Admission To,Address\n';
+    csv='Name,Phone,Alt Phone,Seat,Slot,Fee(Rs),Fee Status,Admission From,Admission To,Address\n';
     csv+=window._students.map(s=>`"${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.feeStatus||'due'}","${s.admFrom||''}","${s.admTo||''}","${s.address||''}"`).join('\n');
   } else if(type==='fees'){
     filename='fee_collection.csv';
