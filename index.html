@@ -199,8 +199,8 @@
   <div class="login-title">Gurukrupa Library</div>
   <div class="login-sub">& Study Circle, Nagpur</div>
   <div class="login-tabs" id="loginTabs">
-    <div class="login-tab active" onclick="switchLoginTab('staff',this)">馃懆鈥嶐煉� Staff Login</div>
-    <div class="login-tab" onclick="switchLoginTab('student',this)">馃帗 Student</div>
+    <div class="login-tab active" onclick="switchLoginTab('staff',this)">👨‍💼 Staff Login</div>
+    <div class="login-tab" onclick="switchLoginTab('student',this)">🎓 Student</div>
   </div>
   <div class="login-card" id="staffLoginCard">
     <div class="form-group"><label class="form-label" style="color:#1a1a2e">Username</label><input type="text" class="form-control" id="loginUsername" placeholder="Enter username" style="color:#1a1a2e"/></div>
@@ -210,7 +210,7 @@
   </div>
   <div class="login-card" id="studentLoginCard" style="display:none">
     <div style="text-align:center;font-size:13px;color:#555;margin-bottom:14px">New to Gurukrupa Library?<br>Fill the form to apply for admission!</div>
-    <button class="btn btn-p" onclick="openStudentRegistration()">馃摑 Apply for Admission</button>
+    <button class="btn btn-p" onclick="openStudentRegistration()">📝 Apply for Admission</button>
     <div style="text-align:center;margin-top:10px;font-size:11px;color:#888">Your application will be reviewed by admin</div>
   </div>
 </div>
@@ -224,8 +224,8 @@
       <div class="topbar-sub" id="topbarSub">Loading...</div>
     </div>
     <div class="topbar-right">
-      <button class="icon-btn" onclick="openModal('themeModal')">馃帹</button>
-      <button class="icon-btn" onclick="openModal('qrModal')">馃摫</button>
+      <button class="icon-btn" onclick="openModal('themeModal')">🎨</button>
+      <button class="icon-btn" onclick="openModal('qrModal')">📱</button>
       <div class="user-badge" id="userBadge" onclick="handleLogout()">?</div>
     </div>
   </div>
@@ -236,20 +236,20 @@
     <div id="pendingApprovalAlert"></div>
     <div class="stats-grid">
       <div class="stat-card" onclick="showStatDetail('occupied')" style="cursor:pointer">
-        <div class="stat-icon">馃獞</div><div class="stat-value" id="statOcc">-</div>
-        <div class="stat-label">Occupied Seats</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view 鈥�</div>
+        <div class="stat-icon">🪑</div><div class="stat-value" id="statOcc">-</div>
+        <div class="stat-label">Occupied Seats</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view ›</div>
       </div>
       <div class="stat-card" onclick="showStatDetail('vacant')" style="cursor:pointer">
-        <div class="stat-icon">鉁�</div><div class="stat-value" id="statVac">-</div>
-        <div class="stat-label">Vacant Seats</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view 鈥�</div>
+        <div class="stat-icon">✅</div><div class="stat-value" id="statVac">-</div>
+        <div class="stat-label">Vacant Seats</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view ›</div>
       </div>
       <div class="stat-card" onclick="showStatDetail('students')" style="cursor:pointer">
-        <div class="stat-icon">馃懃</div><div class="stat-value" id="statStu">-</div>
-        <div class="stat-label">Total Students</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view 鈥�</div>
+        <div class="stat-icon">👥</div><div class="stat-value" id="statStu">-</div>
+        <div class="stat-label">Total Students</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view ›</div>
       </div>
       <div class="stat-card" onclick="showStatDetail('collected')" style="cursor:pointer">
-        <div class="stat-icon">馃挵</div><div class="stat-value" id="statRev">-</div>
-        <div class="stat-label">Collected (鈧�)</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view 鈥�</div>
+        <div class="stat-icon">💰</div><div class="stat-value" id="statRev">-</div>
+        <div class="stat-label">Collected (₹)</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view ›</div>
       </div>
     </div>
     <div class="card">
@@ -257,15 +257,15 @@
       <div style="display:flex;gap:14px;flex-wrap:wrap">
         <div style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="showStatDetail('paid')">
           <div style="width:9px;height:9px;border-radius:50%;background:var(--ok)"></div>
-          <span style="font-size:11px;color:var(--ok);font-weight:700"><span id="statPaid">0</span> Paid 鈥�</span>
+          <span style="font-size:11px;color:var(--ok);font-weight:700"><span id="statPaid">0</span> Paid ›</span>
         </div>
         <div style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="showStatDetail('due')">
           <div style="width:9px;height:9px;border-radius:50%;background:var(--err)"></div>
-          <span style="font-size:11px;color:var(--err);font-weight:700"><span id="statDue">0</span> Due 鈥�</span>
+          <span style="font-size:11px;color:var(--err);font-weight:700"><span id="statDue">0</span> Due ›</span>
         </div>
         <div style="display:flex;align-items:center;gap:5px;cursor:pointer" onclick="showStatDetail('expiring')">
           <div style="width:9px;height:9px;border-radius:50%;background:var(--warn)"></div>
-          <span style="font-size:11px;color:var(--warn);font-weight:700"><span id="statExp">0</span> Expiring 鈥�</span>
+          <span style="font-size:11px;color:var(--warn);font-weight:700"><span id="statExp">0</span> Expiring ›</span>
         </div>
       </div>
     </div>
@@ -283,15 +283,15 @@
         <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,var(--a) 50%,#7b1fa2 50%)"></div>Both</div>
       </div>
       <div style="width:100%;overflow:hidden">
-        <div class="seat-section"><div class="seat-section-title">Seats 1鈥�84</div><div class="seat-map" id="seatMap1"></div></div>
-        <div class="seat-section"><div class="seat-section-title">Ground Floor G1鈥揋47</div><div class="seat-map-g" id="seatMapG"></div></div>
+        <div class="seat-section"><div class="seat-section-title">Seats 1–84</div><div class="seat-map" id="seatMap1"></div></div>
+        <div class="seat-section"><div class="seat-section-title">Ground Floor G1–G47</div><div class="seat-map-g" id="seatMapG"></div></div>
       </div>
     </div>
   </div>
 
   <!-- STUDENTS -->
   <div class="page" id="page-students">
-    <div class="search-box"><div class="search-icon">馃攳</div><input type="text" placeholder="Search name, seat, phone..." id="stuSearch" oninput="filterStudents()"/></div>
+    <div class="search-box"><div class="search-icon">🔍</div><input type="text" placeholder="Search name, seat, phone..." id="stuSearch" oninput="filterStudents()"/></div>
     <div class="section-header">
       <div class="section-title">Students</div>
       <button class="btn btn-a btn-sm" onclick="openAddStudent()">+ Add</button>
@@ -302,8 +302,8 @@
   <!-- PENDING APPROVALS -->
   <div class="page" id="page-pending">
     <div class="section-header">
-      <div class="section-title">鈴� Pending Approvals</div>
-      <button class="btn btn-p btn-sm" onclick="loadPending()">馃攧 Refresh</button>
+      <div class="section-title">⏳ Pending Approvals</div>
+      <button class="btn btn-p btn-sm" onclick="loadPending()">🔄 Refresh</button>
     </div>
     <div id="pendingList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
   </div>
@@ -315,9 +315,9 @@
       <input type="date" class="form-control" id="attDate" onchange="loadAttendance()"/>
     </div>
     <div class="section-header">
-      <div class="section-title">Attendance 鈥� <span id="presentCount">0</span> Present</div>
+      <div class="section-title">Attendance — <span id="presentCount">0</span> Present</div>
       <div style="display:flex;gap:5px">
-        <button class="btn btn-ok btn-sm" onclick="markAllPresent()">All 鉁�</button>
+        <button class="btn btn-ok btn-sm" onclick="markAllPresent()">All ✓</button>
         <button class="btn btn-p btn-sm" onclick="saveAttendance()">Save</button>
       </div>
     </div>
@@ -352,18 +352,18 @@
       <div class="card-title">Outstanding Dues</div>
       <div id="duesList"></div>
     </div>
-    <div class="section-title" style="margin-bottom:10px">馃摜 Download Reports</div>
-    <button class="report-btn" onclick="dlReport('students')"><span style="font-size:24px">馃懃</span><div><div style="font-weight:700;font-size:13px">Students Report</div><div style="font-size:11px;color:var(--muted)">All student details</div></div></button>
-    <button class="report-btn" onclick="dlReport('fees')"><span style="font-size:24px">馃挵</span><div><div style="font-weight:700;font-size:13px">Fee Collection</div><div style="font-size:11px;color:var(--muted)">Month-wise fee report</div></div></button>
-    <button class="report-btn" onclick="dlReport('expenses')"><span style="font-size:24px">馃Ь</span><div><div style="font-weight:700;font-size:13px">Expenses Report</div><div style="font-size:11px;color:var(--muted)">Month-wise expenses</div></div></button>
-    <button class="report-btn" onclick="dlReport('income')"><span style="font-size:24px">馃搳</span><div><div style="font-weight:700;font-size:13px">Income vs Expense</div><div style="font-size:11px;color:var(--muted)">Net profit report</div></div></button>
-    <button class="report-btn" onclick="dlReport('dues')"><span style="font-size:24px">鈿狅笍</span><div><div style="font-weight:700;font-size:13px">Outstanding Dues</div><div style="font-size:11px;color:var(--muted)">Pending payments</div></div></button>
-    <button class="report-btn" onclick="dlReport('attendance')"><span style="font-size:24px">馃搵</span><div><div style="font-weight:700;font-size:13px">Attendance Report</div><div style="font-size:11px;color:var(--muted)">Daily attendance</div></div></button>
-    <button class="report-btn" onclick="dlReport('inventory')"><span style="font-size:24px">馃摝</span><div><div style="font-weight:700;font-size:13px">Inventory Report</div><div style="font-size:11px;color:var(--muted)">Equipment status</div></div></button>
+    <div class="section-title" style="margin-bottom:10px">📥 Download Reports</div>
+    <button class="report-btn" onclick="dlReport('students')"><span style="font-size:24px">👥</span><div><div style="font-weight:700;font-size:13px">Students Report</div><div style="font-size:11px;color:var(--muted)">All student details</div></div></button>
+    <button class="report-btn" onclick="dlReport('fees')"><span style="font-size:24px">💰</span><div><div style="font-weight:700;font-size:13px">Fee Collection</div><div style="font-size:11px;color:var(--muted)">Month-wise fee report</div></div></button>
+    <button class="report-btn" onclick="dlReport('expenses')"><span style="font-size:24px">🧾</span><div><div style="font-weight:700;font-size:13px">Expenses Report</div><div style="font-size:11px;color:var(--muted)">Month-wise expenses</div></div></button>
+    <button class="report-btn" onclick="dlReport('income')"><span style="font-size:24px">📊</span><div><div style="font-weight:700;font-size:13px">Income vs Expense</div><div style="font-size:11px;color:var(--muted)">Net profit report</div></div></button>
+    <button class="report-btn" onclick="dlReport('dues')"><span style="font-size:24px">⚠️</span><div><div style="font-weight:700;font-size:13px">Outstanding Dues</div><div style="font-size:11px;color:var(--muted)">Pending payments</div></div></button>
+    <button class="report-btn" onclick="dlReport('attendance')"><span style="font-size:24px">📋</span><div><div style="font-weight:700;font-size:13px">Attendance Report</div><div style="font-size:11px;color:var(--muted)">Daily attendance</div></div></button>
+    <button class="report-btn" onclick="dlReport('inventory')"><span style="font-size:24px">📦</span><div><div style="font-weight:700;font-size:13px">Inventory Report</div><div style="font-size:11px;color:var(--muted)">Equipment status</div></div></button>
 
     <!-- EXPENSES ENTRY -->
     <div style="margin-top:14px">
-      <div class="section-header"><div class="section-title">馃捀 Add Expense</div></div>
+      <div class="section-header"><div class="section-title">💸 Add Expense</div></div>
       <div class="card">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -376,7 +376,7 @@
             <option value="Other">Other</option>
           </select>
         </div>
-        <div class="form-group"><label class="form-label">Amount (鈧�)</label><input type="number" class="form-control" id="expAmount" placeholder="Enter amount"/></div>
+        <div class="form-group"><label class="form-label">Amount (₹)</label><input type="number" class="form-control" id="expAmount" placeholder="Enter amount"/></div>
         <div class="form-group"><label class="form-label">Date</label><input type="date" class="form-control" id="expDate"/></div>
         <div class="form-group"><label class="form-label">Note</label><input type="text" class="form-control" id="expNote" placeholder="Optional note"/></div>
         <button class="btn btn-p" onclick="saveExpense()">Save Expense</button>
@@ -388,10 +388,10 @@
 
   <!-- MORE -->
   <div class="page" id="page-more">
-    <div class="section-header"><div class="section-title">馃摝 Inventory</div><button class="btn btn-a btn-sm" onclick="openAddInv()">+ Add</button></div>
+    <div class="section-header"><div class="section-title">📦 Inventory</div><button class="btn btn-a btn-sm" onclick="openAddInv()">+ Add</button></div>
     <div id="invList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
     <div style="margin-top:14px">
-      <div class="section-header"><div class="section-title">馃懃 Staff</div><button class="btn btn-a btn-sm" onclick="openAddStaff()">+ Add</button></div>
+      <div class="section-header"><div class="section-title">👥 Staff</div><button class="btn btn-a btn-sm" onclick="openAddStaff()">+ Add</button></div>
       <div id="staffList"><div class="loading"><div class="spinner"></div> Loading...</div></div>
     </div>
   </div>
@@ -412,14 +412,14 @@
 <div class="modal-overlay" id="stuRegModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">馃摑 Apply for Admission</div>
+    <div class="modal-title">📝 Apply for Admission</div>
     <div class="photo-wrap">
       <div class="photo-upload" id="regPhotoDiv" onclick="triggerCamera('gallery')">
-        <span style="font-size:22px">馃柤锔�</span><span>Gallery</span>
+        <span style="font-size:22px">🖼️</span><span>Gallery</span>
         <input type="file" id="regPhotoGallery" accept="image/*" style="display:none" onchange="handleRegPhoto(event,'gallery')"/>
       </div>
       <div class="photo-upload" onclick="triggerCamera('camera')">
-        <span style="font-size:22px">馃摲</span><span>Camera</span>
+        <span style="font-size:22px">📷</span><span>Camera</span>
         <input type="file" id="regPhotoCamera" accept="image/*" capture="user" style="display:none" onchange="handleRegPhoto(event,'camera')"/>
       </div>
     </div>
@@ -433,9 +433,9 @@
       <label class="form-label">Preferred Slot *</label>
       <select class="form-control" id="regSlot">
         <option value="">Select slot</option>
-        <option value="full">Full Time (7AM鈥�11PM) 鈥� Admin will set fee</option>
-        <option value="morning">Morning Half (7AM鈥�2PM) 鈥� Admin will set fee</option>
-        <option value="evening">Evening Half (2PM鈥�11PM) 鈥� Admin will set fee</option>
+        <option value="full">Full Time (7AM–11PM) — Admin will set fee</option>
+        <option value="morning">Morning Half (7AM–2PM) — Admin will set fee</option>
+        <option value="evening">Evening Half (2PM–11PM) — Admin will set fee</option>
       </select>
     </div>
     <div class="form-group">
@@ -463,11 +463,11 @@
     <div class="modal-title" id="addStuTitle">Add New Student</div>
     <div class="photo-wrap">
       <div class="photo-upload" id="stuPhotoDiv" onclick="document.getElementById('stuPhotoGallery').click()">
-        <span style="font-size:22px">馃柤锔�</span><span style="font-size:9px">Gallery</span>
+        <span style="font-size:22px">🖼️</span><span style="font-size:9px">Gallery</span>
         <input type="file" id="stuPhotoGallery" accept="image/*" style="display:none" onchange="handleStuPhoto(event)"/>
       </div>
       <div class="photo-upload" onclick="document.getElementById('stuPhotoCamera').click()">
-        <span style="font-size:22px">馃摲</span><span style="font-size:9px">Camera</span>
+        <span style="font-size:22px">📷</span><span style="font-size:9px">Camera</span>
         <input type="file" id="stuPhotoCamera" accept="image/*" capture="user" style="display:none" onchange="handleStuPhoto(event)"/>
       </div>
     </div>
@@ -481,9 +481,9 @@
       <label class="form-label">Slot Type *</label>
       <select class="form-control" id="stuSlot" onchange="onSlotChange()">
         <option value="">Select slot first</option>
-        <option value="full">Full Time (7AM鈥�11PM)</option>
-        <option value="morning">Morning Half (7AM鈥�2PM)</option>
-        <option value="evening">Evening Half (2PM鈥�11PM)</option>
+        <option value="full">Full Time (7AM–11PM)</option>
+        <option value="morning">Morning Half (7AM–2PM)</option>
+        <option value="evening">Evening Half (2PM–11PM)</option>
       </select>
     </div>
     <div class="form-group">
@@ -492,7 +492,7 @@
         <option value="">Select seat</option>
       </select>
     </div>
-    <div class="form-group"><label class="form-label">Monthly Fee (鈧�) *</label><input type="number" class="form-control" id="stuFee" placeholder="Enter fee amount"/></div>
+    <div class="form-group"><label class="form-label">Monthly Fee (₹) *</label><input type="number" class="form-control" id="stuFee" placeholder="Enter fee amount"/></div>
     <div class="form-group"><label class="form-label">Admission From *</label><input type="date" class="form-control" id="stuFrom"/></div>
     <div class="form-group"><label class="form-label">Admission To *</label><input type="date" class="form-control" id="stuTo"/></div>
     <div class="form-group"><label class="form-label">ID Proof Type</label>
@@ -521,18 +521,18 @@
     </div>
     <div class="card" style="margin-bottom:10px"><div id="detailInfo"></div></div>
     <div class="detail-actions">
-      <button class="btn btn-ok btn-sm" onclick="markFeePaid()">鉁� Fee Paid</button>
-      <button class="btn btn-err btn-sm" onclick="markFeeUnpaid()">鈫╋笍 Mark Unpaid</button>
+      <button class="btn btn-ok btn-sm" onclick="markFeePaid()">✅ Fee Paid</button>
+      <button class="btn btn-err btn-sm" onclick="markFeeUnpaid()">↩️ Mark Unpaid</button>
     </div>
     <div class="detail-actions">
-      <button class="btn btn-wa btn-sm" onclick="sendWA()">馃敂 Reminder</button>
-      <button class="btn btn-a btn-sm" onclick="showReceipt()">馃Ь Receipt</button>
+      <button class="btn btn-wa btn-sm" onclick="sendWA()">🔔 Reminder</button>
+      <button class="btn btn-a btn-sm" onclick="showReceipt()">🧾 Receipt</button>
     </div>
     <div class="detail-actions">
-      <button class="btn btn-out btn-sm" onclick="editStudent()">鉁忥笍 Edit</button>
+      <button class="btn btn-out btn-sm" onclick="editStudent()">✏️ Edit</button>
 
     </div>
-    <button class="btn btn-err btn-sm" onclick="deleteStudent()" style="margin-bottom:8px">馃棏锔� Delete Student</button>
+    <button class="btn btn-err btn-sm" onclick="deleteStudent()" style="margin-bottom:8px">🗑️ Delete Student</button>
     <button class="btn btn-out" onclick="closeModal('stuDetailModal')">Close</button>
   </div>
 </div>
@@ -541,17 +541,17 @@
 <div class="modal-overlay" id="approvalModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">馃搵 Approve Application</div>
+    <div class="modal-title">📋 Approve Application</div>
     <div class="card" style="margin-bottom:10px"><div id="approvalInfo"></div></div>
     <div class="form-group">
       <label class="form-label">Allot Seat Number *</label>
       <select class="form-control" id="approvalSeat"><option value="">Select available seat</option></select>
     </div>
-    <div class="form-group"><label class="form-label">Monthly Fee (鈧�) *</label><input type="number" class="form-control" id="approvalFee" placeholder="Enter fee amount"/></div>
+    <div class="form-group"><label class="form-label">Monthly Fee (₹) *</label><input type="number" class="form-control" id="approvalFee" placeholder="Enter fee amount"/></div>
     <div class="form-group"><label class="form-label">Admission From *</label><input type="date" class="form-control" id="approvalFrom"/></div>
     <div class="form-group"><label class="form-label">Admission To *</label><input type="date" class="form-control" id="approvalTo"/></div>
-    <button class="btn btn-ok" onclick="approveApplication()">鉁� Approve & Send WhatsApp</button>
-    <button class="btn btn-err" style="margin-top:8px" onclick="rejectApplication()">鉂� Reject Application</button>
+    <button class="btn btn-ok" onclick="approveApplication()">✅ Approve & Send WhatsApp</button>
+    <button class="btn btn-err" style="margin-top:8px" onclick="rejectApplication()">❌ Reject Application</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('approvalModal')">Cancel</button>
   </div>
 </div>
@@ -560,10 +560,10 @@
 <div class="modal-overlay" id="receiptModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">馃Ь Fee Receipt</div>
+    <div class="modal-title">🧾 Fee Receipt</div>
     <div class="receipt" id="receiptContent"></div>
-    <button class="btn btn-p" onclick="dlReceipt()">猬囷笍 Step 1: Download Receipt PNG</button>
-    <button class="btn btn-wa" style="margin-top:8px" onclick="sendReceiptWA()">馃挰 Step 2: Send via WhatsApp</button>
+    <button class="btn btn-p" onclick="dlReceipt()">⬇️ Step 1: Download Receipt PNG</button>
+    <button class="btn btn-wa" style="margin-top:8px" onclick="sendReceiptWA()">💬 Step 2: Send via WhatsApp</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('receiptModal')">Close</button>
   </div>
 </div>
@@ -572,7 +572,7 @@
 <div class="modal-overlay" id="stuQRModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">馃搵 Student ID Card QR</div>
+    <div class="modal-title">📋 Student ID Card QR</div>
     <div class="qr-box" id="stuQRBox"></div>
     <div id="stuQRInfo" style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px"></div>
     <button class="btn btn-out" onclick="closeModal('stuQRModal')">Close</button>
@@ -583,14 +583,14 @@
 <div class="modal-overlay" id="qrModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">馃摫 Share App</div>
+    <div class="modal-title">📱 Share App</div>
     <div style="text-align:center;font-size:12px;color:var(--muted);margin-bottom:10px">Scan to open Gurukrupa Library app</div>
     <div class="qr-box" id="appQRBox"></div>
     <div style="text-align:center;margin:10px 0">
       <div style="font-size:12px;color:var(--muted)">App Link:</div>
       <div style="font-size:11px;color:var(--p);word-break:break-all" id="appLinkText"></div>
     </div>
-    <button class="btn btn-wa" onclick="shareAppLink()">馃挰 Share App Link</button>
+    <button class="btn btn-wa" onclick="shareAppLink()">💬 Share App Link</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('qrModal')">Close</button>
   </div>
 </div>
@@ -599,10 +599,10 @@
 <div class="modal-overlay" id="expireModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">鈿狅笍 Admission Expired</div>
+    <div class="modal-title">⚠️ Admission Expired</div>
     <div id="expireInfo" style="margin-bottom:14px;font-size:13px;color:var(--muted)"></div>
-    <button class="btn btn-err" onclick="vacateSeat()">馃棏锔� Vacate Seat & Delete</button>
-    <button class="btn btn-warn" style="margin-top:8px" onclick="extendAdmission()">鈴� Extend Admission</button>
+    <button class="btn btn-err" onclick="vacateSeat()">🗑️ Vacate Seat & Delete</button>
+    <button class="btn btn-warn" style="margin-top:8px" onclick="extendAdmission()">⏰ Extend Admission</button>
     <button class="btn btn-out" style="margin-top:8px" onclick="closeModal('expireModal')">Keep for Now</button>
   </div>
 </div>
@@ -644,7 +644,7 @@
 <div class="modal-overlay" id="themeModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">馃帹 Choose Theme</div>
+    <div class="modal-title">🎨 Choose Theme</div>
     <div class="theme-grid">
       <div class="theme-opt active" id="theme-navy" onclick="setTheme('navy')"><div class="theme-dot" style="background:linear-gradient(135deg,#1a3a6b,#e65c00)"></div>Navy</div>
       <div class="theme-opt" id="theme-green" onclick="setTheme('green')"><div class="theme-dot" style="background:linear-gradient(135deg,#1b5e20,#f9a825)"></div>Green</div>
@@ -700,7 +700,7 @@ function setTheme(theme) {
   if (el) el.classList.add('active');
   if (window._redrawChart) window._redrawChart();
 }
-// Proxy functions 鈥� delegate to module functions via window.*
+// Proxy functions — delegate to module functions via window.*
 function handleLogin() { if(window._handleLogin) window._handleLogin(); }
 function handleLogout() { if(window._handleLogout) window._handleLogout(); }
 function openStudentRegistration() { if(window._openStudentRegistration) window._openStudentRegistration(); }
@@ -1024,7 +1024,7 @@ filterStudents=function(){
 
 function renderStudentList(list){
   const el=document.getElementById('studentList');
-  if(!list.length){el.innerHTML='<div class="empty"><div class="emo">馃懃</div><div>No students found</div></div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty"><div class="emo">👥</div><div>No students found</div></div>';return;}
   el.innerHTML=list.map(s=>{
     const seatLabel=(s.seatPrefix||'')+s.seat;
     const slotLabel=s.slot==='full'?'Full':s.slot==='morning'?'Morning AM':'Evening PM';
@@ -1035,7 +1035,7 @@ function renderStudentList(list){
       <div class="avatar">${s.photoUrl?`<img src="${s.photoUrl}"/>`:'<span>'+s.name[0].toUpperCase()+'</span>'}</div>
       <div class="item-info">
         <div class="item-name">${s.name}</div>
-        <div class="item-meta">Seat ${seatLabel} 鈥� ${s.phone||''}</div>
+        <div class="item-meta">Seat ${seatLabel} • ${s.phone||''}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
         <span class="badge ${slotBadge}">${slotLabel}</span>
@@ -1076,7 +1076,7 @@ function showNextExpiring(list,idx){
   window._curExpireId=s.id;
   const days=Math.ceil((new Date(toISO(s.admTo))-new Date())/(1000*60*60*24));
   document.getElementById('expireInfo').innerHTML=
-    '鈿狅笍 <strong>'+s.name+'</strong> (Seat '+(s.seatPrefix||'')+s.seat+') admission is expiring in <strong>'+days+' day(s)</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
+    '⚠️ <strong>'+s.name+'</strong> (Seat '+(s.seatPrefix||'')+s.seat+') admission is expiring in <strong>'+days+' day(s)</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
   document.getElementById('expireModal').classList.add('open');
   window._expireNext=function(){showNextExpiring(list,idx+1);};
 }
@@ -1090,7 +1090,7 @@ function showNextExpired(list,idx,expiringList){
   const s=list[idx];
   window._curExpireId=s.id;
   document.getElementById('expireInfo').innerHTML=
-    '馃敶 <strong>'+s.name+'</strong> (Seat '+(s.seatPrefix||'')+s.seat+') admission <strong>expired</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
+    '🔴 <strong>'+s.name+'</strong> (Seat '+(s.seatPrefix||'')+s.seat+') admission <strong>expired</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
   document.getElementById('expireModal').classList.add('open');
   window._expireNext=function(){showNextExpired(list,idx+1,expiringList);};
 }
@@ -1146,8 +1146,8 @@ function updateDashboard(){
   alertEl.innerHTML=expiringStudents.map(s=>{
     const days=Math.ceil((new Date(toISO(s.admTo))-new Date())/(1000*60*60*24));
     return `<div class="alert alert-warn">
-      <div><div style="font-weight:700;font-size:12px">${s.name}</div><div style="font-size:10px">Seat ${(s.seatPrefix||'')+s.seat} 鈥� Due in ${days} day(s) (${s.admTo})</div></div>
-      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">馃敂</button>
+      <div><div style="font-weight:700;font-size:12px">${s.name}</div><div style="font-size:10px">Seat ${(s.seatPrefix||'')+s.seat} — Due in ${days} day(s) (${s.admTo})</div></div>
+      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
     </div>`;
   }).join('');
 
@@ -1162,8 +1162,8 @@ async function loadPendingCount(){
   const el=document.getElementById('pendingApprovalAlert');
   if(pending.length){
     el.innerHTML=`<div class="alert alert-info" onclick="switchPage('pending',document.querySelectorAll('.nav-item')[2]);loadPending()" style="cursor:pointer">
-      <div><div style="font-weight:700;font-size:12px">鈴� ${pending.length} Pending Approval(s)</div><div style="font-size:10px">Tap to review student applications</div></div>
-      <span style="font-size:18px">鈫�</span>
+      <div><div style="font-weight:700;font-size:12px">⏳ ${pending.length} Pending Approval(s)</div><div style="font-size:10px">Tap to review student applications</div></div>
+      <span style="font-size:18px">→</span>
     </div>`;
   } else el.innerHTML='';
 }
@@ -1186,11 +1186,11 @@ function drawChart(){
     data:{
       labels:months,
       datasets:[
-        {label:'Income (鈧�)',data:incomes,backgroundColor:'rgba(26,58,107,.7)',borderRadius:5},
-        {label:'Expenses (鈧�)',data:expenseData,backgroundColor:'rgba(230,92,0,.5)',borderRadius:5}
+        {label:'Income (₹)',data:incomes,backgroundColor:'rgba(26,58,107,.7)',borderRadius:5},
+        {label:'Expenses (₹)',data:expenseData,backgroundColor:'rgba(230,92,0,.5)',borderRadius:5}
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'鈧�'+v.toLocaleString('en-IN'),font:{size:9}}}}}
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}}}
   });
 }
 
@@ -1206,7 +1206,7 @@ openAddStudent=function(){
   document.getElementById('stuFrom').value=new Date().toISOString().split('T')[0];
   const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
   document.getElementById('stuTo').value=nxt.toISOString().split('T')[0];
-  document.getElementById('stuPhotoDiv').innerHTML='<span style="font-size:22px">馃柤锔�</span><span style="font-size:9px">Gallery</span><input type="file" id="stuPhotoGallery" accept="image/*" style="display:none" onchange="handleStuPhoto(event)"/>';
+  document.getElementById('stuPhotoDiv').innerHTML='<span style="font-size:22px">🖼️</span><span style="font-size:9px">Gallery</span><input type="file" id="stuPhotoGallery" accept="image/*" style="display:none" onchange="handleStuPhoto(event)"/>';
   document.getElementById('stuPhotoPreview').style.display='none';
   populateSeatSelect();
   document.getElementById('addStudentModal').classList.add('open');
@@ -1263,7 +1263,7 @@ saveStudent=async function(){
   const admFrom=isoToDDMMYYYY(admFromRaw);
   const admTo=isoToDDMMYYYY(admToRaw);
   if(phone.length!==10){showToast('Enter valid 10-digit phone');return;}
-  if(!window._photo&&!window._editMode){showToast('馃摲 Photo is required!');return;}
+  if(!window._photo&&!window._editMode){showToast('📷 Photo is required!');return;}
 
   const {seat,seatPrefix}=parseSeatValue(seatVal);
   
@@ -1290,10 +1290,10 @@ saveStudent=async function(){
   try{
     if(window._editMode&&window._curStuId){
       await updateDoc(doc(db,'students',window._curStuId),data);
-      showToast('Student updated! 鉁�');
+      showToast('Student updated! ✅');
     } else {
       await setDoc(doc(collection(db,'students')),data);
-      showToast('Student added! 鉁�');
+      showToast('Student added! ✅');
     }
     closeModal('addStudentModal');
     window._photo=null;
@@ -1309,14 +1309,14 @@ openStuDetail=function(id){
   const avatar=document.getElementById('detailAvatar');
   avatar.innerHTML=s.photoUrl?`<img src="${s.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`:'<span>'+s.name[0].toUpperCase()+'</span>';
   document.getElementById('detailName').textContent=s.name;
-  document.getElementById('detailSeat').textContent=`Seat ${seatLabel} 鈥� ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'}`;
-  const slotTime=s.slot==='full'?'7AM鈥�11PM':s.slot==='morning'?'7AM鈥�2PM':'2PM鈥�11PM';
+  document.getElementById('detailSeat').textContent=`Seat ${seatLabel} • ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'}`;
+  const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
   document.getElementById('detailInfo').innerHTML=`
     <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${s.phone||'-'}</span></div>
     <div class="info-row"><span class="info-label">Address</span><span class="info-value">${s.address||'-'}</span></div>
     <div class="info-row"><span class="info-label">Seat</span><span class="info-value">${seatLabel}</span></div>
     <div class="info-row"><span class="info-label">Slot</span><span class="info-value">${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})</span></div>
-    <div class="info-row"><span class="info-label">Monthly Fee</span><span class="info-value">鈧�${(s.fee||0).toLocaleString('en-IN')}</span></div>
+    <div class="info-row"><span class="info-label">Monthly Fee</span><span class="info-value">₹${(s.fee||0).toLocaleString('en-IN')}</span></div>
     <div class="info-row"><span class="info-label">Fee Status</span><span class="info-value"><span class="badge ${s.feeStatus==='paid'?'b-paid':isExpiring(s)?'b-exp':'b-due'}">${s.feeStatus==='paid'?'Paid':isExpiring(s)?'Expiring':'Due'}</span></span></div>
     <div class="info-row"><span class="info-label">Admission From</span><span class="info-value">${s.admFrom||'-'}</span></div>
     <div class="info-row"><span class="info-label">Admission To</span><span class="info-value">${s.admTo||'-'}</span></div>
@@ -1330,7 +1330,7 @@ markFeePaid=async function(){
   const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
   const newTo=`${String(nxt.getDate()).padStart(2,'0')}-${String(nxt.getMonth()+1).padStart(2,'0')}-${nxt.getFullYear()}`;
   await updateDoc(doc(db,'students',window._curStuId),{feeStatus:'paid',admTo:newTo,lastPaid:todayDDMMYYYY()});
-  showToast('Fee marked as paid! 鉁�');
+  showToast('Fee marked as paid! ✅');
   closeModal('stuDetailModal');
   loadStudents();
 };
@@ -1351,7 +1351,7 @@ sendWA=function(){
 };
 
 sendWADirect=function(phone,name,fee,seat){
-  const msg='馃檹 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear '+name+',\n\nYour library membership fee of *鈧�'+fee+'* is due.\nSeat No: *'+seat+'*\n\nPlease pay at the earliest to continue using the library.\n\n馃挸 UPI ID: *'+UPI_ID+'*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  const msg='🙏 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear '+name+',\n\nYour library membership fee of *₹'+fee+'* is due.\nSeat No: *'+seat+'*\n\nPlease pay at the earliest to continue using the library.\n\n💳 UPI ID: *'+UPI_ID+'*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
 };
 
@@ -1396,7 +1396,7 @@ deleteStudent=async function(){
 showReceipt=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
   const seatLabel=(s.seatPrefix||'')+s.seat;
-  const slotTime=s.slot==='full'?'7AM鈥�11PM':s.slot==='morning'?'7AM鈥�2PM':'2PM鈥�11PM';
+  const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
   document.getElementById('receiptContent').innerHTML=`
     <img src="${LOGO_SRC}" class="receipt-logo" alt="Logo"/>
     <div class="receipt-title">GURUKRUPA LIBRARY & STUDY CIRCLE</div>
@@ -1407,8 +1407,8 @@ showReceipt=function(){
     <div class="receipt-row"><span>Seat No.</span><span>${seatLabel}</span></div>
     <div class="receipt-row"><span>Slot</span><span>${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})</span></div>
     <div class="receipt-row"><span>Period</span><span>${s.admFrom||'-'} to ${s.admTo||'-'}</span></div>
-    <div class="receipt-total"><span>TOTAL PAID</span><span>鈧�${(s.fee||0).toLocaleString('en-IN')}</span></div>
-    <div style="text-align:center;font-size:10px;margin-top:8px;color:#555">Gurukrupa Library welcomes you! 馃檹<br>Thank you for your payment for Seat No. ${seatLabel}</div>`;
+    <div class="receipt-total"><span>TOTAL PAID</span><span>₹${(s.fee||0).toLocaleString('en-IN')}</span></div>
+    <div style="text-align:center;font-size:10px;margin-top:8px;color:#555">Gurukrupa Library welcomes you! 🙏<br>Thank you for your payment for Seat No. ${seatLabel}</div>`;
   closeModal('stuDetailModal');
   document.getElementById('receiptModal').classList.add('open');
 };
@@ -1443,7 +1443,7 @@ sendReceiptWA=function(){
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM-11PM':s.slot==='morning'?'7AM-2PM':'2PM-11PM';
   const slotName=s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half';
-  const caption='馃檹 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 馃檹\n\nWe have received your payment for:\n\n馃懁 Name: '+s.name+'\n馃獞 Seat No: '+seatLabel+'\n鈴� Slot: '+slotName+' ('+slotTime+')\n馃搮 Period: '+(s.admFrom||'-')+' to '+(s.admTo||'-')+'\n馃挵 Amount Paid: Rs.'+(s.fee||0)+'\n\nPlease attach the downloaded receipt image.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  const caption='🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 🙏\n\nWe have received your payment for:\n\n👤 Name: '+s.name+'\n🪑 Seat No: '+seatLabel+'\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Period: '+(s.admFrom||'-')+' to '+(s.admTo||'-')+'\n💰 Amount Paid: Rs.'+(s.fee||0)+'\n\nPlease attach the downloaded receipt image.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(caption),'_blank');
 };
 
@@ -1461,7 +1461,7 @@ dlReceipt=async function(){
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-    showToast('鉁� Receipt downloaded! Now tap Step 2.');
+    showToast('✅ Receipt downloaded! Now tap Step 2.');
   }catch(err){
     showToast('Error: '+err.message);
     console.error(err);
@@ -1473,7 +1473,7 @@ showStudentQR=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
   const seatLabel=(s.seatPrefix||'')+s.seat;
   const slotTime=s.slot==='full'?'7AM-11PM':s.slot==='morning'?'7AM-2PM':'2PM-11PM';
-  const data=`GURUKRUPA LIBRARY\nName: ${s.name}\nSeat: ${seatLabel}\nSlot: ${slotTime}\nPhone: ${s.phone||''}\nFee: 鈧�${s.fee||0}/month\nValid: ${s.admFrom||''} to ${s.admTo||''}`;
+  const data=`GURUKRUPA LIBRARY\nName: ${s.name}\nSeat: ${seatLabel}\nSlot: ${slotTime}\nPhone: ${s.phone||''}\nFee: ₹${s.fee||0}/month\nValid: ${s.admFrom||''} to ${s.admTo||''}`;
   const box=document.getElementById('stuQRBox');
   box.innerHTML='';
   new QRCode(box,{text:data,width:200,height:200,colorDark:'#1a3a6b',colorLight:'#ffffff'});
@@ -1493,7 +1493,7 @@ function generateAppQR(){
 
 shareAppLink=function(){
   const url=window.location.href;
-  const msg=`馃摎 *Gurukrupa Library & Study Circle*\n\nLibrary Management App:\n${url}\n\nScan QR or click link to access!`;
+  const msg=`📚 *Gurukrupa Library & Study Circle*\n\nLibrary Management App:\n${url}\n\nScan QR or click link to access!`;
   window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`,'_blank');
 };
 
@@ -1524,7 +1524,7 @@ submitRegistration=async function(){
   const idNum=document.getElementById('regIdNum').value.trim();
   if(!name||!phone||!address||!slot||!idType||!idNum){showToast('Please fill all required fields');return;}
   if(phone.length!==10){showToast('Enter valid 10-digit phone');return;}
-  if(!window._regPhoto){showToast('馃摲 Photo is required! Please upload your photo.');return;}
+  if(!window._regPhoto){showToast('📷 Photo is required! Please upload your photo.');return;}
   try{
     await setDoc(doc(collection(db,'applications')),{
       name,phone,address,slot,idType,idNumber:idNum,
@@ -1533,7 +1533,7 @@ submitRegistration=async function(){
       status:'pending',
       submittedAt:new Date().toISOString()
     });
-    showToast('Application submitted! Admin will contact you soon. 鉁�');
+    showToast('Application submitted! Admin will contact you soon. ✅');
     closeModal('stuRegModal');
     window._regPhoto=null;
   } catch(e){showToast('Error submitting. Try again.');}
@@ -1545,13 +1545,13 @@ loadPending=async function(){
   el.innerHTML='<div class="loading"><div class="spinner"></div> Loading...</div>';
   const snap=await getDocs(collection(db,'applications'));
   const pending=snap.docs.filter(d=>d.data().status==='pending').map(d=>({id:d.id,...d.data()}));
-  if(!pending.length){el.innerHTML='<div class="empty"><div class="emo">鉁�</div><div>No pending applications</div></div>';return;}
+  if(!pending.length){el.innerHTML='<div class="empty"><div class="emo">✅</div><div>No pending applications</div></div>';return;}
   el.innerHTML=pending.map(p=>`
     <div class="pending-item">
       <div class="avatar">${p.photoUrl?`<img src="${p.photoUrl}"/>`:'<span>'+p.name[0].toUpperCase()+'</span>'}</div>
       <div class="item-info">
         <div class="item-name">${p.name}</div>
-        <div class="item-meta">${p.phone} 鈥� ${p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half'}</div>
+        <div class="item-meta">${p.phone} • ${p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half'}</div>
         <div class="item-meta">${p.idType}: ${p.idNumber}</div>
       </div>
       <button class="btn btn-ok btn-xs" onclick="openApproval('${p.id}')">Review</button>
@@ -1563,7 +1563,7 @@ openApproval=async function(id){
   if(!snap.exists()) return;
   const p=snap.data();
   window._curAppId=id;
-  const slotTime=p.slot==='full'?'7AM鈥�11PM':p.slot==='morning'?'7AM鈥�2PM':'2PM鈥�11PM';
+  const slotTime=p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
   document.getElementById('approvalInfo').innerHTML=`
     <div class="info-row"><span class="info-label">Name</span><span class="info-value">${p.name}</span></div>
     <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${p.phone}</span></div>
@@ -1628,14 +1628,14 @@ approveApplication=async function(){
   await updateDoc(doc(db,'applications',window._curAppId),{status:'approved',approvedAt:new Date().toISOString()});
   
   // Send WhatsApp
-  const slotTime=p.slot==='full'?'7AM鈥�11PM':p.slot==='morning'?'7AM鈥�2PM':'2PM鈥�11PM';
+  const slotTime=p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
   const slotName=p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half';
-  const msg='馃檹 *Gurukrupa Library & Study Circle*\n\n鉁� *Admission Confirmed!*\n\nDear '+p.name+',\n\nYour admission has been confirmed!\n\n馃獞 Seat No: *'+seatVal+'*\n鈴� Slot: '+slotName+' ('+slotTime+')\n馃搮 Admission Period: *'+admFrom+' to '+admTo+'*\n馃挵 Monthly Fee: Rs.'+fee+'\n\nPlease arrive on time. Library timings: '+slotTime+'.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  const msg='🙏 *Gurukrupa Library & Study Circle*\n\n✅ *Admission Confirmed!*\n\nDear '+p.name+',\n\nYour admission has been confirmed!\n\n🪑 Seat No: *'+seatVal+'*\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Admission Period: *'+admFrom+' to '+admTo+'*\n💰 Monthly Fee: Rs.'+fee+'\n\nPlease arrive on time. Library timings: '+slotTime+'.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   // iPhone compatible - use location.href for WhatsApp
   setTimeout(function(){
     window.location.href='https://wa.me/91'+p.phone+'?text='+encodeURIComponent(msg);
   }, 500);
-  showToast('Approved! Opening WhatsApp... 鉁�');
+  showToast('Approved! Opening WhatsApp... ✅');
   closeModal('approvalModal');
   loadStudents();
   loadPending();
@@ -1646,7 +1646,7 @@ rejectApplication=async function(){
   if(!confirm('Reject this application?')) return;
   const p=window._curAppData;
   await updateDoc(doc(db,'applications',window._curAppId),{status:'rejected',rejectedAt:new Date().toISOString()});
-  const msg=`馃檹 *Gurukrupa Library & Study Circle*\n\nDear ${p.name},\n\nWe regret to inform that your admission application has not been approved at this time.\n\nPlease visit or contact the library for more information.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
+  const msg=`🙏 *Gurukrupa Library & Study Circle*\n\nDear ${p.name},\n\nWe regret to inform that your admission application has not been approved at this time.\n\nPlease visit or contact the library for more information.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
   window.open(`https://wa.me/91${p.phone}?text=${encodeURIComponent(msg)}`,'_blank');
   showToast('Application rejected');
   closeModal('approvalModal');
@@ -1664,7 +1664,7 @@ loadAttendance=async function(){
 
 function renderAttendance(){
   const el=document.getElementById('attList');
-  if(!window._students.length){el.innerHTML='<div class="empty"><div class="emo">馃搵</div><div>No students yet</div></div>';return;}
+  if(!window._students.length){el.innerHTML='<div class="empty"><div class="emo">📋</div><div>No students yet</div></div>';return;}
   el.innerHTML=window._students.map(s=>`
     <div class="att-item">
       <div>
@@ -1698,7 +1698,7 @@ saveAttendance=async function(){
   await Promise.all(window._students.map(s=>
     setDoc(doc(db,'attendance',`${date}_${s.id}`),{studentId:s.id,date,present:!!window._att[s.id]})
   ));
-  showToast('Attendance saved! 鉁�');
+  showToast('Attendance saved! ✅');
 };
 
 // ===== FEES =====
@@ -1726,20 +1726,20 @@ filterFees=function(){
 
 function renderFeeList(list){
   const el=document.getElementById('feeList');
-  if(!list.length){el.innerHTML='<div class="empty"><div class="emo">馃挵</div><div>No records</div></div>';return;}
+  if(!list.length){el.innerHTML='<div class="empty"><div class="emo">💰</div><div>No records</div></div>';return;}
   el.innerHTML=list.map(s=>{
     const seatLabel=(s.seatPrefix||'')+s.seat;
     return `<div class="fee-row">
       <div>
         <div style="font-weight:600;font-size:13px">${s.name}</div>
-        <div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} 鈥� 鈧�${(s.fee||0).toLocaleString('en-IN')}/mo</div>
-        <div style="font-size:10px;color:var(--muted)">Valid: ${s.admFrom||'-'} 鈫� ${s.admTo||'-'}</div>
+        <div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}/mo</div>
+        <div style="font-size:10px;color:var(--muted)">Valid: ${s.admFrom||'-'} → ${s.admTo||'-'}</div>
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;gap:3px;align-items:flex-end">
         <span class="badge ${s.feeStatus==='paid'?'b-paid':isExpiring(s)?'b-exp':'b-due'}">${s.feeStatus==='paid'?'Paid':isExpiring(s)?'Expiring':'Due'}</span>
         <div style="display:flex;gap:3px">
           ${s.feeStatus!=='paid'?`<button class="btn btn-ok btn-xs" onclick="quickPay('${s.id}')">Collect</button>`:''}
-          <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">馃敂</button>
+          <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">🔔</button>
         </div>
       </div>
     </div>`;
@@ -1750,7 +1750,7 @@ quickPay=async function(id){
   const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
   const newTo=`${String(nxt.getDate()).padStart(2,'0')}-${String(nxt.getMonth()+1).padStart(2,'0')}-${nxt.getFullYear()}`;
   await updateDoc(doc(db,'students',id),{feeStatus:'paid',admTo:newTo,lastPaid:todayDDMMYYYY()});
-  showToast('Fee collected! 鉁�');
+  showToast('Fee collected! ✅');
   await loadStudents(); filterFees();
 };
 
@@ -1758,12 +1758,12 @@ quickPay=async function(id){
 function renderDuesList(){
   const el=document.getElementById('duesList');
   const dues=window._students.filter(s=>s.feeStatus!=='paid');
-  if(!dues.length){el.innerHTML='<div style="color:var(--ok);font-weight:600;text-align:center;padding:10px">馃帀 No outstanding dues!</div>';return;}
+  if(!dues.length){el.innerHTML='<div style="color:var(--ok);font-weight:600;text-align:center;padding:10px">🎉 No outstanding dues!</div>';return;}
   el.innerHTML=dues.map(s=>{
     const seatLabel=(s.seatPrefix||'')+s.seat;
     return `<div class="fee-row">
-      <div><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} 鈥� 鈧�${(s.fee||0).toLocaleString('en-IN')}</div></div>
-      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">馃敂 Remind</button>
+      <div><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}</div></div>
+      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">🔔 Remind</button>
     </div>`;
   }).join('');
 }
@@ -1783,7 +1783,7 @@ saveExpense=async function(){
   }
   const date=isoToDDExp(dateRaw);
   await setDoc(doc(collection(db,'expenses')),{cat,amount,date,note,createdAt:new Date().toISOString()});
-  showToast('Expense saved! 鉁�');
+  showToast('Expense saved! ✅');
   document.getElementById('expAmount').value='';
   document.getElementById('expNote').value='';
   document.getElementById('expDate').value='';
@@ -1794,12 +1794,12 @@ window.loadExpenses=async function(){
   const snap=await getDocs(collection(db,'expenses'));
   window._expenses=snap.docs.map(d=>({id:d.id,...d.data()})).sort((a,b)=>b.createdAt.localeCompare(a.createdAt));
   const el=document.getElementById('expList');
-  if(!window._expenses.length){el.innerHTML='<div class="empty"><div class="emo">馃捀</div><div>No expenses yet</div></div>';return;}
+  if(!window._expenses.length){el.innerHTML='<div class="empty"><div class="emo">💸</div><div>No expenses yet</div></div>';return;}
   el.innerHTML=window._expenses.slice(0,10).map(e=>`
     <div class="fee-row">
-      <div><div style="font-weight:600;font-size:13px">${e.cat}</div><div style="font-size:10px;color:var(--muted)">${e.date} ${e.note?'鈥� '+e.note:''}</div></div>
+      <div><div style="font-weight:600;font-size:13px">${e.cat}</div><div style="font-size:10px;color:var(--muted)">${e.date} ${e.note?'• '+e.note:''}</div></div>
       <div style="text-align:right">
-        <div style="font-weight:700;color:var(--err)">鈧�${(e.amount||0).toLocaleString('en-IN')}</div>
+        <div style="font-weight:700;color:var(--err)">₹${(e.amount||0).toLocaleString('en-IN')}</div>
         <button class="btn btn-err btn-xs" onclick="delExpense('${e.id}')">Del</button>
       </div>
     </div>`).join('');
@@ -1863,7 +1863,7 @@ dlReport=function(type){
   
   const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
-  showToast('Report downloaded! 鉁�');
+  showToast('Report downloaded! ✅');
 };
 
 // ===== INVENTORY =====
@@ -1875,13 +1875,13 @@ async function loadInventory(){
 
 function renderInventory(){
   const el=document.getElementById('invList');
-  if(!window._inv.length){el.innerHTML='<div class="empty"><div class="emo">馃摝</div><div>No items yet</div></div>';return;}
+  if(!window._inv.length){el.innerHTML='<div class="empty"><div class="emo">📦</div><div>No items yet</div></div>';return;}
   el.innerHTML=window._inv.map(item=>`
     <div class="list-item">
-      <div style="font-size:24px">馃摝</div>
+      <div style="font-size:24px">📦</div>
       <div class="item-info">
         <div class="item-name">${item.name}</div>
-        <div class="item-meta">${item.condition||'Good'} ${item.notes?'鈥� '+item.notes:''}</div>
+        <div class="item-meta">${item.condition||'Good'} ${item.notes?'• '+item.notes:''}</div>
       </div>
       <div style="text-align:right">
         <div class="inv-count">${item.qty}</div>
@@ -1922,10 +1922,10 @@ saveInv=async function(){
   const data={name,qty,condition:document.getElementById('invCond').value,notes:document.getElementById('invNotes').value.trim()};
   if(window._curInvId){
     await updateDoc(doc(db,'inventory',window._curInvId),data);
-    showToast('Updated! 鉁�');
+    showToast('Updated! ✅');
   } else {
     await setDoc(doc(collection(db,'inventory')),data);
-    showToast('Added! 鉁�');
+    showToast('Added! ✅');
   }
   closeModal('addInvModal'); loadInventory();
 };
@@ -1941,13 +1941,13 @@ async function loadStaff(){
   const snap=await getDocs(collection(db,'staff'));
   const staff=snap.docs.map(d=>({id:d.id,...d.data()}));
   const el=document.getElementById('staffList');
-  if(!staff.length){el.innerHTML='<div class="empty"><div class="emo">馃懁</div><div>No staff yet</div></div>';return;}
+  if(!staff.length){el.innerHTML='<div class="empty"><div class="emo">👤</div><div>No staff yet</div></div>';return;}
   el.innerHTML=staff.map(s=>`
     <div class="list-item">
       <div class="avatar" style="width:40px;height:40px;font-size:14px">${s.name[0].toUpperCase()}</div>
       <div class="item-info">
         <div class="item-name">${s.name}</div>
-        <div class="item-meta">@${s.username||''} 鈥� ${s.email}</div>
+        <div class="item-meta">@${s.username||''} • ${s.email}</div>
       </div>
       <span class="badge ${s.role==='admin'?'b-admin':'b-staff'}">${s.role||'staff'}</span>
     </div>`).join('');
@@ -1970,7 +1970,7 @@ saveStaff=async function(){
   try{
     const cred=await createUserWithEmailAndPassword(auth,email,password);
     await setDoc(doc(db,'staff',cred.user.uid),{name,username,email,role,createdAt:new Date().toISOString()});
-    showToast('Staff added! 鉁�'); closeModal('addStaffModal'); loadStaff();
+    showToast('Staff added! ✅'); closeModal('addStaffModal'); loadStaff();
   } catch(e){showToast(e.code==='auth/email-already-in-use'?'Email exists':'Error creating staff');}
 };
 
@@ -2016,7 +2016,7 @@ dlReceiptPNG=async function(){
   a.href=canvas.toDataURL('image/png');
   a.download='Receipt-'+(s?s.name.replace(/ /g,'_'):'Student')+'.png';
   a.click();
-  showToast('Receipt image downloaded! 鉁�');
+  showToast('Receipt image downloaded! ✅');
 };
 
 dlReceiptPNGAndWA=async function(){
@@ -2034,9 +2034,9 @@ dlReceiptPNGAndWA=async function(){
   // Wait briefly then open WhatsApp
   setTimeout(()=>{
     const seatLabel=(s.seatPrefix||'')+s.seat;
-    const msg=`馃檹 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 馃檹\n\n鉁� Payment received for:\n馃懁 ${s.name}\n馃獞 Seat No: ${seatLabel}\n馃挵 Amount: Rs.${(s.fee||0).toLocaleString('en-IN')}\n馃搮 Period: ${s.admFrom||''} to ${s.admTo||''}\n\n馃搸 Receipt image has been downloaded.\nPlease attach it to this message.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
+    const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 🙏\n\n✅ Payment received for:\n👤 ${s.name}\n🪑 Seat No: ${seatLabel}\n💰 Amount: Rs.${(s.fee||0).toLocaleString('en-IN')}\n📅 Period: ${s.admFrom||''} to ${s.admTo||''}\n\n📎 Receipt image has been downloaded.\nPlease attach it to this message.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
     window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(msg),'_blank');
-    showToast('Image downloaded! Attach it in WhatsApp 馃搸');
+    showToast('Image downloaded! Attach it in WhatsApp 📎');
   },1500);
 };
 
@@ -2063,7 +2063,7 @@ shareReceiptPNG=async function(){
         try{
           if(navigator.canShare && navigator.canShare({files:[file]})){
             await navigator.share({files:[file],title:'Fee Receipt - Gurukrupa Library'});
-            showToast('Shared! 鉁�');
+            showToast('Shared! ✅');
             return;
           }
         } catch(shareErr){
@@ -2075,7 +2075,7 @@ shareReceiptPNG=async function(){
       const a=document.createElement('a');
       a.href=url; a.download=filename; a.click();
       setTimeout(()=>URL.revokeObjectURL(url),2000);
-      showToast('Receipt saved! Open gallery to share 馃搸');
+      showToast('Receipt saved! Open gallery to share 📎');
     };
     xhr.send();
   } catch(e){
@@ -2087,13 +2087,13 @@ shareReceiptPNG=async function(){
 
 showStatDetail=function(type){
   const titles={
-    occupied:'馃獞 Occupied Seats',
-    vacant:'鉁� Vacant Seats',
-    students:'馃懃 All Students',
-    collected:'馃挵 Fee Collected',
-    paid:'鉁� Fee Paid Students',
-    due:'鉂� Fee Due Students',
-    expiring:'鈿狅笍 Expiring Soon (3 days)'
+    occupied:'🪑 Occupied Seats',
+    vacant:'✅ Vacant Seats',
+    students:'👥 All Students',
+    collected:'💰 Fee Collected',
+    paid:'✅ Fee Paid Students',
+    due:'❌ Fee Due Students',
+    expiring:'⚠️ Expiring Soon (3 days)'
   };
   document.getElementById('statDetailTitle').textContent=titles[type]||'Details';
   const el=document.getElementById('statDetailContent');
@@ -2110,10 +2110,10 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} 鈥� ${s.slot==='full'?'Full':s.slot==='morning'?'Morning AM':'Evening PM'}</div>
+          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ${s.slot==='full'?'Full':s.slot==='morning'?'Morning AM':'Evening PM'}</div>
         </div>
         <span class="badge ${s.feeStatus==='paid'?'b-paid':'b-due'}">${s.feeStatus==='paid'?'Paid':'Due'}</span>
-      </div>`).join(''):'<div class="empty"><div class="emo">馃獞</div><div>No occupied seats</div></div>';
+      </div>`).join(''):'<div class="empty"><div class="emo">🪑</div><div>No occupied seats</div></div>';
 
   } else if(type==='vacant'){
     const allSeats=[];
@@ -2122,7 +2122,7 @@ showStatDetail=function(type){
     html=allSeats.length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:4px">`+
       allSeats.map(s=>`<div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;font-weight:700;font-size:13px;color:var(--ok);border:1px solid #a5d6a7">${s}</div>`).join('')+
       '</div>':
-      '<div class="empty"><div class="emo">鉁�</div><div>No vacant seats!</div></div>';
+      '<div class="empty"><div class="emo">✅</div><div>No vacant seats!</div></div>';
 
   } else if(type==='students'){
     list=window._students;
@@ -2130,17 +2130,17 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} 鈥� ${s.phone||''}</div>
+          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ${s.phone||''}</div>
         </div>
         <span class="badge ${s.slot==='full'?'b-full':s.slot==='morning'?'b-morning':'b-evening'}">${s.slot==='full'?'Full':s.slot==='morning'?'AM':'PM'}</span>
-      </div>`).join(''):'<div class="empty"><div class="emo">馃懃</div><div>No students yet</div></div>';
+      </div>`).join(''):'<div class="empty"><div class="emo">👥</div><div>No students yet</div></div>';
 
   } else if(type==='collected'){
     list=window._students.filter(s=>s.feeStatus==='paid');
     const total=list.reduce((sum,s)=>sum+(s.fee||0),0);
     html=`<div style="text-align:center;padding:10px;margin-bottom:10px;background:var(--bg);border-radius:10px">
       <div style="font-size:11px;color:var(--muted)">Total Collected</div>
-      <div style="font-size:26px;font-weight:800;color:var(--ok)">鈧�${total.toLocaleString('en-IN')}</div>
+      <div style="font-size:26px;font-weight:800;color:var(--ok)">₹${total.toLocaleString('en-IN')}</div>
     </div>`+
     (list.length?list.map(s=>`
       <div class="fee-row">
@@ -2148,8 +2148,8 @@ showStatDetail=function(type){
           <div style="font-weight:700;font-size:13px">${s.name}</div>
           <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat}</div>
         </div>
-        <div style="font-weight:700;color:var(--ok)">鈧�${(s.fee||0).toLocaleString('en-IN')}</div>
-      </div>`).join(''):'<div class="empty"><div class="emo">馃挵</div><div>No payments yet</div></div>');
+        <div style="font-weight:700;color:var(--ok)">₹${(s.fee||0).toLocaleString('en-IN')}</div>
+      </div>`).join(''):'<div class="empty"><div class="emo">💰</div><div>No payments yet</div></div>');
 
   } else if(type==='paid'){
     list=window._students.filter(s=>s.feeStatus==='paid');
@@ -2157,10 +2157,10 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} 鈥� 鈧�${s.fee||0}</div>
+          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ₹${s.fee||0}</div>
         </div>
         <span class="badge b-paid">Paid</span>
-      </div>`).join(''):'<div class="empty"><div class="emo">鉁�</div><div>No paid students</div></div>';
+      </div>`).join(''):'<div class="empty"><div class="emo">✅</div><div>No paid students</div></div>';
 
   } else if(type==='due'){
     list=window._students.filter(s=>s.feeStatus!=='paid');
@@ -2168,13 +2168,13 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} 鈥� 鈧�${s.fee||0}</div>
+          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ₹${s.fee||0}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
           <span class="badge b-due">Due</span>
-          <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">馃敂</button>
+          <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
         </div>
-      </div>`).join(''):'<div class="empty"><div class="emo">馃帀</div><div>No dues! All paid!</div></div>';
+      </div>`).join(''):'<div class="empty"><div class="emo">🎉</div><div>No dues! All paid!</div></div>';
 
   } else if(type==='expiring'){
     list=window._students.filter(s=>isExpiring(s));
@@ -2183,11 +2183,11 @@ showStatDetail=function(type){
       return `<div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--warn)">Expires in ${days} day(s) 鈥� ${s.admTo}</div>
+          <div style="font-size:11px;color:var(--warn)">Expires in ${days} day(s) — ${s.admTo}</div>
         </div>
-        <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">馃敂</button>
+        <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
       </div>`;
-    }).join(''):'<div class="empty"><div class="emo">鉁�</div><div>No expiring admissions</div></div>';
+    }).join(''):'<div class="empty"><div class="emo">✅</div><div>No expiring admissions</div></div>';
   }
 
   el.innerHTML=html;
