@@ -363,7 +363,10 @@
 
     <!-- EXPENSES ENTRY -->
     <div style="margin-top:14px">
-      <div class="section-header"><div class="section-title">💸 Add Expense</div></div>
+      <div class="section-header">
+        <div class="section-title">💸 Add Expense</div>
+        <button class="btn btn-err btn-sm" onclick="deleteOldExpenses()">🗑️ Delete Old</button>
+      </div>
       <div class="card">
         <div class="form-group">
           <label class="form-label">Category</label>
@@ -741,6 +744,7 @@ function filterFees() { if(window._filterFees) window._filterFees(); }
 function quickPay(id) { if(window._quickPay) window._quickPay(id); }
 function saveExpense() { if(window._saveExpense) window._saveExpense(); }
 function delExpense(id) { if(window._delExpense) window._delExpense(id); }
+function deleteOldExpenses() { if(window._deleteOldExpenses) window._deleteOldExpenses(); }
 function dlReport(t) { if(window._dlReport) window._dlReport(t); }
 function openAddInv() { if(window._openAddInv) window._openAddInv(); }
 function editInv(id) { if(window._editInv) window._editInv(id); }
@@ -1155,7 +1159,7 @@ function updateDashboard(){
 
   // Pending approvals alert
   loadPendingCount();
-  drawChart();
+  drawChart(); // async - runs in background
 }
 
 async function loadPendingCount(){
@@ -1170,18 +1174,54 @@ async function loadPendingCount(){
   } else el.innerHTML='';
 }
 
-function drawChart(){
+async function drawChart(){
   const ctx=document.getElementById('incomeChart');
   if(!ctx) return;
-  const months=[]; const incomes=[]; const expenseData=[];
+
   const now=new Date();
+  const months=[]; const monthKeys=[]; const incomes=[]; const expenseData=[];
+
+  // Build last 6 months labels and keys (MM-YYYY)
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    months.push(d.toLocaleString('default',{month:'short'}));
-    const base=window._students.filter(s=>s.feeStatus==='paid').reduce((sum,s)=>sum+(s.fee||0),0);
-    incomes.push(i===0?base:Math.round(base*(0.7+Math.random()*.3)));
-    expenseData.push(Math.round(base*0.3*(0.8+Math.random()*.4)));
+    months.push(d.toLocaleString('default',{month:'short'}+' '+d.getFullYear().toString().slice(2)));
+    const mm=String(d.getMonth()+1).padStart(2,'0');
+    const yyyy=d.getFullYear();
+    monthKeys.push(mm+'-'+yyyy); // e.g. "07-2026"
   }
+
+  // Calculate real income per month from students (lastPaid date)
+  // Students who paid - use lastPaid field (DD-MM-YYYY)
+  monthKeys.forEach(key=>{
+    const [mm,yyyy]=key.split('-');
+    const monthIncome=window._students
+      .filter(s=>{
+        if(!s.lastPaid) return false;
+        const parts=s.lastPaid.split('-'); // DD-MM-YYYY
+        if(parts.length!==3) return false;
+        return parts[1]===mm && parts[2]===yyyy;
+      })
+      .reduce((sum,s)=>sum+(s.fee||0),0);
+    incomes.push(monthIncome);
+  });
+
+  // Calculate real expenses per month from expenses collection
+  const expSnap=await getDocs(collection(db,'expenses'));
+  const allExpenses=expSnap.docs.map(d=>d.data());
+
+  monthKeys.forEach(key=>{
+    const [mm,yyyy]=key.split('-');
+    const monthExp=allExpenses
+      .filter(e=>{
+        if(!e.date) return false;
+        const parts=e.date.split('-'); // DD-MM-YYYY
+        if(parts.length!==3) return false;
+        return parts[1]===mm && parts[2]===yyyy;
+      })
+      .reduce((sum,e)=>sum+(e.amount||0),0);
+    expenseData.push(monthExp);
+  });
+
   if(window._chart) window._chart.destroy();
   window._chart=new Chart(ctx,{
     type:'bar',
@@ -1192,7 +1232,11 @@ function drawChart(){
         {label:'Expenses (₹)',data:expenseData,backgroundColor:'rgba(230,92,0,.5)',borderRadius:5}
       ]
     },
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{size:10}}}},scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}}}
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{font:{size:10}}}},
+      scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}}
+    }
   });
 }
 
@@ -1980,7 +2024,7 @@ saveStaff=async function(){
 };
 
 // Theme redraw hook
-window._redrawChart=function(){if(window._chart){window._chart.destroy();window._chart=null;drawChart();}};
+window._redrawChart=function(){if(window._chart){window._chart.destroy();window._chart=null;}drawChart();};
 
 function loadTheme(){
   const saved=localStorage.getItem('gl-theme')||'navy';
@@ -2199,6 +2243,37 @@ showStatDetail=function(type){
   openModal('statDetailModal');
 };
 
+deleteOldExpenses=async function(){
+  // Show month picker to select which months to delete
+  const now=new Date();
+  const currentMonth=String(now.getMonth()+1).padStart(2,'0')+'-'+now.getFullYear();
+  const lastMonth=new Date(now.getFullYear(),now.getMonth()-1,1);
+  const lastMonthKey=String(lastMonth.getMonth()+1).padStart(2,'0')+'-'+lastMonth.getFullYear();
+
+  const choice=confirm(
+    'Delete old expense records?\n\n'+
+    'This will delete ALL expenses EXCEPT current month ('+currentMonth+').\n\n'+
+    'Tap OK to confirm deletion.'
+  );
+  if(!choice) return;
+
+  showToast('Deleting old expenses...');
+  const snap=await getDocs(collection(db,'expenses'));
+  const toDelete=snap.docs.filter(d=>{
+    const e=d.data();
+    if(!e.date) return true;
+    const parts=e.date.split('-');
+    if(parts.length!==3) return true;
+    const key=parts[1]+'-'+parts[2]; // MM-YYYY
+    return key!==currentMonth; // delete everything except current month
+  });
+
+  await Promise.all(toDelete.map(d=>deleteDoc(doc(db,'expenses',d.id))));
+  showToast('Deleted '+toDelete.length+' old expense records! ✅');
+  loadExpenses();
+  drawChart();
+};
+
 // ===== WIRE UP ALL GLOBAL CALLBACKS =====
 window._filterFees=filterFees;
 window._loadAttendance=loadAttendance;
@@ -2220,7 +2295,7 @@ window._markFeePaid=markFeePaid;
 window._markFeeUnpaid=markFeeUnpaid;
 window._sendWA=sendWA;
 window._sendWADirect=sendWADirect;
-window._redrawChart=function(){if(window._chart){window._chart.destroy();window._chart=null;drawChart();}};
+{if(window._chart){window._chart.destroy();window._chart=null;}drawChart();};
 window._showReceipt=showReceipt;
 window._sendReceiptWA=sendReceiptWA;
 window._dlReceipt=dlReceipt;
@@ -2240,6 +2315,7 @@ window._saveAttendance=saveAttendance;
 window._quickPay=quickPay;
 window._saveExpense=saveExpense;
 window._delExpense=delExpense;
+window._deleteOldExpenses=deleteOldExpenses;
 window._dlReport=dlReport;
 window._openAddInv=openAddInv;
 window._editInv=editInv;
