@@ -249,7 +249,7 @@
       </div>
       <div class="stat-card" onclick="showStatDetail('collected')" style="cursor:pointer">
         <div class="stat-icon">💰</div><div class="stat-value" id="statRev">-</div>
-        <div class="stat-label">Collected (₹)</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view ›</div>
+        <div class="stat-label">This Month (₹)</div><div style="font-size:9px;color:var(--p);margin-top:2px">tap to view ›</div>
       </div>
     </div>
     <div class="card">
@@ -1136,7 +1136,18 @@ function updateDashboard(){
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
-  const rev=window._students.filter(s=>s.feeStatus==='paid').reduce((sum,s)=>sum+(s.fee||0),0);
+  // Current month income (matching graph) - based on lastPaid this month
+  const now2=new Date();
+  const curMM=String(now2.getMonth()+1).padStart(2,'0');
+  const curYYYY=String(now2.getFullYear());
+  const rev=window._students
+    .filter(s=>{
+      if(!s.lastPaid) return false;
+      const parts=s.lastPaid.split('-');
+      if(parts.length!==3) return false;
+      return parts[1]===curMM && parts[2]===curYYYY;
+    })
+    .reduce((sum,s)=>sum+(s.fee||0),0);
 
   document.getElementById('statOcc').textContent=occ;
   document.getElementById('statVac').textContent=total-occ;
@@ -2176,7 +2187,7 @@ showStatDetail=function(type){
     occupied:'🪑 Occupied Seats',
     vacant:'✅ Vacant Seats',
     students:'👥 All Students',
-    collected:'💰 Fee Collected',
+    collected:'💰 This Month Collection',
     paid:'✅ Fee Paid Students',
     due:'❌ Fee Due Students',
     expiring:'⚠️ Expiring Soon (3 days)'
@@ -2222,20 +2233,29 @@ showStatDetail=function(type){
       </div>`).join(''):'<div class="empty"><div class="emo">👥</div><div>No students yet</div></div>';
 
   } else if(type==='collected'){
-    list=window._students.filter(s=>s.feeStatus==='paid');
+    const now3=new Date();
+    const cMM=String(now3.getMonth()+1).padStart(2,'0');
+    const cYYYY=String(now3.getFullYear());
+    list=window._students.filter(s=>{
+      if(!s.lastPaid) return false;
+      const parts=s.lastPaid.split('-');
+      if(parts.length!==3) return false;
+      return parts[1]===cMM && parts[2]===cYYYY;
+    });
     const total=list.reduce((sum,s)=>sum+(s.fee||0),0);
+    const monthName=now3.toLocaleString('default',{month:'long'});
     html=`<div style="text-align:center;padding:10px;margin-bottom:10px;background:var(--bg);border-radius:10px">
-      <div style="font-size:11px;color:var(--muted)">Total Collected</div>
+      <div style="font-size:11px;color:var(--muted)">${monthName} ${cYYYY} Collection</div>
       <div style="font-size:26px;font-weight:800;color:var(--ok)">₹${total.toLocaleString('en-IN')}</div>
     </div>`+
     (list.length?list.map(s=>`
       <div class="fee-row">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat}</div>
+          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • Paid: ${s.lastPaid||'-'}</div>
         </div>
         <div style="font-weight:700;color:var(--ok)">₹${(s.fee||0).toLocaleString('en-IN')}</div>
-      </div>`).join(''):'<div class="empty"><div class="emo">💰</div><div>No payments yet</div></div>');
+      </div>`).join(''):'<div class="empty"><div class="emo">💰</div><div>No payments this month yet</div></div>');
 
   } else if(type==='paid'){
     list=window._students.filter(s=>s.feeStatus==='paid');
