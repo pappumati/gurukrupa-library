@@ -1184,41 +1184,59 @@ async function drawChart(){
   // Build last 6 months labels and keys (MM-YYYY)
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    months.push(d.toLocaleString('default',{month:'short'}+' '+d.getFullYear().toString().slice(2)));
+    // Show only month name + short year e.g. "Feb 26"
+    const monthName=d.toLocaleString('default',{month:'short'});
+    const shortYear=d.getFullYear().toString().slice(2);
+    months.push(monthName+" '"+shortYear);
     const mm=String(d.getMonth()+1).padStart(2,'0');
-    const yyyy=d.getFullYear();
-    monthKeys.push(mm+'-'+yyyy); // e.g. "07-2026"
+    const yyyy=String(d.getFullYear());
+    monthKeys.push({mm,yyyy});
   }
 
-  // Calculate real income per month from students (lastPaid date)
-  // Students who paid - use lastPaid field (DD-MM-YYYY)
-  monthKeys.forEach(key=>{
-    const [mm,yyyy]=key.split('-');
+  // Calculate INCOME per month
+  // Income = fees paid by students whose lastPaid is in that month (DD-MM-YYYY)
+  monthKeys.forEach(({mm,yyyy})=>{
     const monthIncome=window._students
       .filter(s=>{
         if(!s.lastPaid) return false;
-        const parts=s.lastPaid.split('-'); // DD-MM-YYYY
+        // lastPaid stored as DD-MM-YYYY
+        const parts=s.lastPaid.split('-');
         if(parts.length!==3) return false;
-        return parts[1]===mm && parts[2]===yyyy;
+        const pMM=parts[1]; // month
+        const pYYYY=parts[2]; // year
+        return pMM===mm && pYYYY===yyyy;
       })
       .reduce((sum,s)=>sum+(s.fee||0),0);
     incomes.push(monthIncome);
   });
 
-  // Calculate real expenses per month from expenses collection
-  const expSnap=await getDocs(collection(db,'expenses'));
-  const allExpenses=expSnap.docs.map(d=>d.data());
+  // Calculate EXPENSES per month from Firebase
+  // expenses stored with date as DD-MM-YYYY
+  let allExpenses=[];
+  try{
+    const expSnap=await getDocs(collection(db,'expenses'));
+    allExpenses=expSnap.docs.map(d=>d.data());
+  }catch(e){console.error('Expense fetch error:',e);}
 
-  monthKeys.forEach(key=>{
-    const [mm,yyyy]=key.split('-');
+  monthKeys.forEach(({mm,yyyy})=>{
     const monthExp=allExpenses
       .filter(e=>{
         if(!e.date) return false;
-        const parts=e.date.split('-'); // DD-MM-YYYY
+        // Handle both DD-MM-YYYY and DD.MM.YYYY formats
+        const cleanDate=e.date.replace(/\./g,'-');
+        const parts=cleanDate.split('-');
         if(parts.length!==3) return false;
-        return parts[1]===mm && parts[2]===yyyy;
+        let pMM, pYYYY;
+        if(parts[0].length===4){
+          // YYYY-MM-DD format
+          pMM=parts[1]; pYYYY=parts[0];
+        } else {
+          // DD-MM-YYYY format
+          pMM=parts[1]; pYYYY=parts[2];
+        }
+        return pMM===mm && pYYYY===yyyy;
       })
-      .reduce((sum,e)=>sum+(e.amount||0),0);
+      .reduce((sum,e)=>sum+(parseFloat(e.amount)||0),0);
     expenseData.push(monthExp);
   });
 
@@ -1228,14 +1246,33 @@ async function drawChart(){
     data:{
       labels:months,
       datasets:[
-        {label:'Income (₹)',data:incomes,backgroundColor:'rgba(26,58,107,.7)',borderRadius:5},
-        {label:'Expenses (₹)',data:expenseData,backgroundColor:'rgba(230,92,0,.5)',borderRadius:5}
+        {label:'Income (₹)',data:incomes,backgroundColor:'rgba(26,58,107,.8)',borderRadius:5},
+        {label:'Expenses (₹)',data:expenseData,backgroundColor:'rgba(230,92,0,.6)',borderRadius:5}
       ]
     },
     options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{legend:{labels:{font:{size:10}}}},
-      scales:{y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}}
+      responsive:true,
+      maintainAspectRatio:false,
+      plugins:{
+        legend:{labels:{font:{size:10}}},
+        tooltip:{
+          callbacks:{
+            label:function(ctx){
+              return ctx.dataset.label+': ₹'+ctx.parsed.y.toLocaleString('en-IN');
+            }
+          }
+        }
+      },
+      scales:{
+        x:{ticks:{font:{size:9}}},
+        y:{
+          beginAtZero:true,
+          ticks:{
+            callback:v=>'₹'+v.toLocaleString('en-IN'),
+            font:{size:9}
+          }
+        }
+      }
     }
   });
 }
