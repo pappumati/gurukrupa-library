@@ -57,8 +57,10 @@
     /* SEAT MAP */
     .seat-section{margin-bottom:10px}
     .seat-section-title{font-size:11px;font-weight:700;color:var(--muted);margin-bottom:5px;padding:3px 8px;background:var(--bg);border-radius:6px}
-    .seat-map{display:grid;grid-template-columns:repeat(14,minmax(0,1fr));gap:3px;width:100%}
-    .seat-map-g{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:3px;width:100%}
+    .seat-map,.seat-map-g{display:grid;gap:3px;width:100%}
+    .seat-map{grid-template-columns:repeat(9,1fr)}
+    .seat-map-g{grid-template-columns:repeat(8,1fr)}
+    .seat{aspect-ratio:1;min-width:0;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;cursor:pointer;border:1.5px solid transparent;box-sizing:border-box}
     .seat{aspect-ratio:1;border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:700;cursor:pointer;transition:transform .15s;border:1px solid transparent;-webkit-text-size-adjust:none;text-size-adjust:none}
     .seat:active{transform:scale(.88)}
     .seat.empty{background:#e8f5e9;color:#2e7d32;border-color:#a5d6a7}
@@ -66,6 +68,18 @@
     .seat.morning{background:var(--a);color:#fff}
     .seat.evening{background:#7b1fa2;color:#fff}
     .seat.both{background:linear-gradient(135deg,var(--a) 50%,#7b1fa2 50%);color:#fff}
+    /* Hall colors for empty seats */
+    .hall-diamond .seat.empty{background:#e3f2fd;color:#1565c0;border-color:#90caf9}
+    .hall-achiever .seat.empty{background:#f3e5f5;color:#6a1b9a;border-color:#ce93d8}
+    .hall-gold .seat.empty{background:#fff8e1;color:#e65100;border-color:#ffcc02}
+    .hall-platinum .seat.empty{background:#e0f2f1;color:#00695c;border-color:#80cbc4}
+    .hall-vision .seat.empty{background:#fce4ec;color:#880e4f;border-color:#f48fb1}
+    /* Hall section title colors */
+    .hall-title-diamond{background:#e3f2fd;color:#1565c0;border-left:4px solid #1565c0}
+    .hall-title-achiever{background:#f3e5f5;color:#6a1b9a;border-left:4px solid #6a1b9a}
+    .hall-title-gold{background:#fff8e1;color:#e65100;border-left:4px solid #ffc107}
+    .hall-title-platinum{background:#e0f2f1;color:#00695c;border-left:4px solid #00897b}
+    .hall-title-vision{background:#fce4ec;color:#880e4f;border-left:4px solid #e91e63}
 
     /* FORMS */
     .form-group{margin-bottom:12px}
@@ -276,18 +290,39 @@
     <div class="card">
       <div class="card-title">Seat Map</div>
       <div class="legend">
-        <div class="legend-item"><div class="legend-dot" style="background:#e8f5e9;border:1px solid #a5d6a7"></div>Empty</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--p)"></div>Full</div>
         <div class="legend-item"><div class="legend-dot" style="background:var(--a)"></div>Morning</div>
         <div class="legend-item"><div class="legend-dot" style="background:#7b1fa2"></div>Evening</div>
         <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,var(--a) 50%,#7b1fa2 50%)"></div>Both</div>
       </div>
+      <div class="legend" style="margin-top:4px">
+        <div class="legend-item"><div class="legend-dot" style="background:#e3f2fd;border:1px solid #90caf9"></div>Diamond</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f3e5f5;border:1px solid #ce93d8"></div>Achiever</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fff8e1;border:1px solid #ffcc02"></div>Gold</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0f2f1;border:1px solid #80cbc4"></div>Platinum</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#fce4ec;border:1px solid #f48fb1"></div>Vision</div>
+      </div>
       <div style="width:100%;overflow:hidden">
-        <div class="seat-section"><div class="seat-section-title">💎 Diamond Hall (1–45)</div><div class="seat-map" id="seatMapDiamond"></div></div>
-        <div class="seat-section"><div class="seat-section-title">🏆 Achiever Hall (46–73)</div><div class="seat-map" id="seatMapAchiever"></div></div>
-        <div class="seat-section"><div class="seat-section-title">🥇 Gold Hall (74–83)</div><div class="seat-map" id="seatMapGold"></div></div>
-        <div class="seat-section"><div class="seat-section-title">💠 Platinum Hall (G1–G24)</div><div class="seat-map-g" id="seatMapPlatinum"></div></div>
-        <div class="seat-section"><div class="seat-section-title">👁️ Vision Hall (G25–G45)</div><div class="seat-map-g" id="seatMapVision"></div></div>
+        <div class="seat-section">
+          <div class="seat-section-title hall-title-diamond">💎 Diamond Hall (1–45)</div>
+          <div class="seat-map hall-diamond" id="seatMapDiamond"></div>
+        </div>
+        <div class="seat-section">
+          <div class="seat-section-title hall-title-achiever">🏆 Achiever Hall (46–73)</div>
+          <div class="seat-map hall-achiever" id="seatMapAchiever"></div>
+        </div>
+        <div class="seat-section">
+          <div class="seat-section-title hall-title-gold">🥇 Gold Hall (74–83)</div>
+          <div class="seat-map hall-gold" id="seatMapGold"></div>
+        </div>
+        <div class="seat-section">
+          <div class="seat-section-title hall-title-platinum">💠 Platinum Hall (G1–G24)</div>
+          <div class="seat-map-g hall-platinum" id="seatMapPlatinum"></div>
+        </div>
+        <div class="seat-section">
+          <div class="seat-section-title hall-title-vision">👁️ Vision Hall (G25–G45)</div>
+          <div class="seat-map-g hall-vision" id="seatMapVision"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -1164,43 +1199,30 @@ function updateDashboard(){
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
-  // Current month income - payments collection OR lastPaid fallback
+  // Current month income
   const now2=new Date();
   const curMM=String(now2.getMonth()+1).padStart(2,'0');
   const curYYYY=String(now2.getFullYear());
 
-  function parseDateDash(dateStr){
-    if(!dateStr) return null;
-    const clean=String(dateStr).replace(/\./g,'-').trim();
-    const parts=clean.split('-');
-    if(parts.length!==3) return null;
-    if(parts[0].length===4) return {mm:parts[1].padStart(2,'0'),yyyy:parts[0]};
-    return {mm:parts[1].padStart(2,'0'),yyyy:parts[2]};
+  function parseDtD(s){
+    if(!s) return null;
+    const p=String(s).replace(/[./]/g,'-').split('-');
+    if(p.length!==3) return null;
+    return p[0].length===4?{mm:p[1].padStart(2,'0'),yyyy:p[0]}:{mm:p[1].padStart(2,'0'),yyyy:p[2]};
   }
 
-  let rev=0;
   const cached=window._cachedPayments||[];
-  const hasThisMonthPayments=cached.some(p=>{
-    const d=parseDateDash(p.paidDate);
-    return d && d.mm===curMM && d.yyyy===curYYYY;
-  });
-
-  if(hasThisMonthPayments){
-    rev=cached
-      .filter(p=>{
-        const d=parseDateDash(p.paidDate);
-        return d && d.mm===curMM && d.yyyy===curYYYY;
-      })
-      .reduce((sum,p)=>sum+Math.max(0,parseFloat(p.fee)||0),0);
-  } else {
-    // Fallback to lastPaid on students
-    rev=window._students
-      .filter(s=>{
-        const d=parseDateDash(s.lastPaid);
-        return d && d.mm===curMM && d.yyyy===curYYYY;
-      })
-      .reduce((sum,s)=>sum+(s.fee||0),0);
-  }
+  const fromPayC=cached
+    .filter(p=>{ const d=parseDtD(p.paidDate); return d&&d.mm===curMM&&d.yyyy===curYYYY&&(parseFloat(p.fee)||0)>0; })
+    .reduce((s,p)=>s+(parseFloat(p.fee)||0),0);
+  const fromStuC=window._students
+    .filter(s=>{
+      if(!s.lastPaid) return false;
+      const d=parseDtD(s.lastPaid);
+      return d&&d.mm===curMM&&d.yyyy===curYYYY;
+    })
+    .reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
+  const rev = fromPayC > 0 ? fromPayC : fromStuC;
 
   document.getElementById('statOcc').textContent=occ;
   document.getElementById('statVac').textContent=total-occ;
@@ -1256,49 +1278,41 @@ async function drawChart(){
     });
   }
 
-  // Parse date helper - handles DD-MM-YYYY, DD.MM.YYYY, YYYY-MM-DD
-  function parseDate(dateStr){
-    if(!dateStr) return null;
-    const clean=String(dateStr).replace(/\./g,'-').trim();
-    const parts=clean.split('-');
-    if(parts.length!==3) return null;
-    if(parts[0].length===4) return {mm:parts[1].padStart(2,'0'),yyyy:parts[0]};
-    return {mm:parts[1].padStart(2,'0'),yyyy:parts[2]};
+  // Parse any date format DD-MM-YYYY or YYYY-MM-DD
+  function parseDt(s){
+    if(!s) return null;
+    const p=String(s).replace(/[./]/g,'-').split('-');
+    if(p.length!==3) return null;
+    return p[0].length===4?{mm:p[1].padStart(2,'0'),yyyy:p[0]}:{mm:p[1].padStart(2,'0'),yyyy:p[2]};
   }
 
-  // Get income from payments collection (new records)
+  // Get payments collection records
   let allPayments=[];
   try{
     const paySnap=await getDocs(collection(db,'payments'));
     allPayments=paySnap.docs.map(d=>d.data());
-  }catch(e){console.error('Payments fetch error:',e);}
+  }catch(e){console.error('Payments fetch:',e);}
 
   monthKeys.forEach(({mm,yyyy})=>{
-    // PRIORITY 1: Sum from payments collection
-    const fromPayments=allPayments
-      .filter(p=>{
-        const d=parseDate(p.paidDate);
-        return d && d.mm===mm && d.yyyy===yyyy;
-      })
-      .reduce((sum,p)=>sum+(parseFloat(p.fee)||0),0);
+    // From payments collection (new records)
+    const fromPay=allPayments
+      .filter(p=>{ const d=parseDt(p.paidDate); return d&&d.mm===mm&&d.yyyy===yyyy&&(parseFloat(p.fee)||0)>0; })
+      .reduce((s,p)=>s+(parseFloat(p.fee)||0),0);
 
-    // PRIORITY 2: Fallback - use lastPaid on students (old data before payments collection)
-    const fromStudents=window._students
+    // From students lastPaid (existing/old data)
+    const fromStu=window._students
       .filter(s=>{
         if(!s.lastPaid) return false;
-        const d=parseDate(s.lastPaid);
-        return d && d.mm===mm && d.yyyy===yyyy;
+        const d=parseDt(s.lastPaid);
+        return d&&d.mm===mm&&d.yyyy===yyyy;
       })
-      .reduce((sum,s)=>sum+(s.fee||0),0);
+      .reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
 
-    // Use payments if any exist for this month, else use students lastPaid
-    const hasPaymentRecords=allPayments.some(p=>{
-      const d=parseDate(p.paidDate);
-      return d && d.mm===mm && d.yyyy===yyyy;
-    });
-
-    const monthIncome=hasPaymentRecords ? fromPayments : fromStudents;
-    incomes.push(Math.max(0,monthIncome));
+    // Use sum of both (payments collection adds new, students covers old)
+    // No double counting because new payments use payments collection
+    // and old data only exists in lastPaid
+    const total = fromPay > 0 ? fromPay : fromStu;
+    incomes.push(total);
   });
 
   // Get expenses
