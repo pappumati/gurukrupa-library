@@ -1164,26 +1164,40 @@ function updateDashboard(){
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
-  // Current month income from payments collection
+  // Current month income - payments collection OR lastPaid fallback
   const now2=new Date();
   const curMM=String(now2.getMonth()+1).padStart(2,'0');
   const curYYYY=String(now2.getFullYear());
-  // Use cached payments if available, else use lastPaid fallback
+
+  function parseDateDash(dateStr){
+    if(!dateStr) return null;
+    const clean=String(dateStr).replace(/\./g,'-').trim();
+    const parts=clean.split('-');
+    if(parts.length!==3) return null;
+    if(parts[0].length===4) return {mm:parts[1].padStart(2,'0'),yyyy:parts[0]};
+    return {mm:parts[1].padStart(2,'0'),yyyy:parts[2]};
+  }
+
   let rev=0;
-  if(window._cachedPayments){
-    rev=window._cachedPayments
+  const cached=window._cachedPayments||[];
+  const hasThisMonthPayments=cached.some(p=>{
+    const d=parseDateDash(p.paidDate);
+    return d && d.mm===curMM && d.yyyy===curYYYY;
+  });
+
+  if(hasThisMonthPayments){
+    rev=cached
       .filter(p=>{
-        if(!p.paidDate) return false;
-        const parts=p.paidDate.split('-');
-        return parts.length===3 && parts[1]===curMM && parts[2]===curYYYY;
+        const d=parseDateDash(p.paidDate);
+        return d && d.mm===curMM && d.yyyy===curYYYY;
       })
       .reduce((sum,p)=>sum+Math.max(0,parseFloat(p.fee)||0),0);
   } else {
+    // Fallback to lastPaid on students
     rev=window._students
       .filter(s=>{
-        if(!s.lastPaid) return false;
-        const parts=s.lastPaid.split('-');
-        return parts.length===3 && parts[1]===curMM && parts[2]===curYYYY;
+        const d=parseDateDash(s.lastPaid);
+        return d && d.mm===curMM && d.yyyy===curYYYY;
       })
       .reduce((sum,s)=>sum+(s.fee||0),0);
   }
@@ -1242,30 +1256,48 @@ async function drawChart(){
     });
   }
 
-  // Get income from payments collection (permanent records)
+  // Parse date helper - handles DD-MM-YYYY, DD.MM.YYYY, YYYY-MM-DD
+  function parseDate(dateStr){
+    if(!dateStr) return null;
+    const clean=String(dateStr).replace(/\./g,'-').trim();
+    const parts=clean.split('-');
+    if(parts.length!==3) return null;
+    if(parts[0].length===4) return {mm:parts[1].padStart(2,'0'),yyyy:parts[0]};
+    return {mm:parts[1].padStart(2,'0'),yyyy:parts[2]};
+  }
+
+  // Get income from payments collection (new records)
   let allPayments=[];
   try{
     const paySnap=await getDocs(collection(db,'payments'));
     allPayments=paySnap.docs.map(d=>d.data());
   }catch(e){console.error('Payments fetch error:',e);}
 
-  function parseDate(ddmmyyyy){
-    if(!ddmmyyyy) return null;
-    const clean=ddmmyyyy.replace(/\./g,'-');
-    const parts=clean.split('-');
-    if(parts.length!==3) return null;
-    if(parts[0].length===4) return {mm:parts[1],yyyy:parts[0]};
-    return {mm:parts[1],yyyy:parts[2]};
-  }
-
   monthKeys.forEach(({mm,yyyy})=>{
-    // Sum all payments (including reversals which are negative)
-    const monthIncome=allPayments
+    // PRIORITY 1: Sum from payments collection
+    const fromPayments=allPayments
       .filter(p=>{
         const d=parseDate(p.paidDate);
         return d && d.mm===mm && d.yyyy===yyyy;
       })
       .reduce((sum,p)=>sum+(parseFloat(p.fee)||0),0);
+
+    // PRIORITY 2: Fallback - use lastPaid on students (old data before payments collection)
+    const fromStudents=window._students
+      .filter(s=>{
+        if(!s.lastPaid) return false;
+        const d=parseDate(s.lastPaid);
+        return d && d.mm===mm && d.yyyy===yyyy;
+      })
+      .reduce((sum,s)=>sum+(s.fee||0),0);
+
+    // Use payments if any exist for this month, else use students lastPaid
+    const hasPaymentRecords=allPayments.some(p=>{
+      const d=parseDate(p.paidDate);
+      return d && d.mm===mm && d.yyyy===yyyy;
+    });
+
+    const monthIncome=hasPaymentRecords ? fromPayments : fromStudents;
     incomes.push(Math.max(0,monthIncome));
   });
 
