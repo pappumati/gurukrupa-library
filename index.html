@@ -283,8 +283,11 @@
         <div class="legend-item"><div class="legend-dot" style="background:linear-gradient(135deg,var(--a) 50%,#7b1fa2 50%)"></div>Both</div>
       </div>
       <div style="width:100%;overflow:hidden">
-        <div class="seat-section"><div class="seat-section-title">Seats 1–84</div><div class="seat-map" id="seatMap1"></div></div>
-        <div class="seat-section"><div class="seat-section-title">Ground Floor G1–G47</div><div class="seat-map-g" id="seatMapG"></div></div>
+        <div class="seat-section"><div class="seat-section-title">💎 Diamond Hall (1–45)</div><div class="seat-map" id="seatMapDiamond"></div></div>
+        <div class="seat-section"><div class="seat-section-title">🏆 Achiever Hall (46–73)</div><div class="seat-map" id="seatMapAchiever"></div></div>
+        <div class="seat-section"><div class="seat-section-title">🥇 Gold Hall (74–83)</div><div class="seat-map" id="seatMapGold"></div></div>
+        <div class="seat-section"><div class="seat-section-title">💠 Platinum Hall (G1–G24)</div><div class="seat-map-g" id="seatMapPlatinum"></div></div>
+        <div class="seat-section"><div class="seat-section-title">👁️ Vision Hall (G25–G45)</div><div class="seat-map-g" id="seatMapVision"></div></div>
       </div>
     </div>
   </div>
@@ -870,30 +873,55 @@ function initApp(){
 
 // ===== SEAT MAP =====
 function buildSeatMap(){
-  const m1=document.getElementById('seatMap1');
-  const mg=document.getElementById('seatMapG');
-  m1.innerHTML=''; mg.innerHTML='';
-  for(let i=1;i<=84;i++){
+  // Diamond Hall: 1-45
+  const mD=document.getElementById('seatMapDiamond'); mD.innerHTML='';
+  for(let i=1;i<=45;i++){
     const s=document.createElement('div');
     s.className='seat empty'; s.id='seat-'+i;
     s.textContent=i; s.onclick=()=>seatClick(i,'');
-    m1.appendChild(s);
+    mD.appendChild(s);
   }
-  for(let i=1;i<=47;i++){
+  // Achiever Hall: 46-73
+  const mA=document.getElementById('seatMapAchiever'); mA.innerHTML='';
+  for(let i=46;i<=73;i++){
+    const s=document.createElement('div');
+    s.className='seat empty'; s.id='seat-'+i;
+    s.textContent=i; s.onclick=()=>seatClick(i,'');
+    mA.appendChild(s);
+  }
+  // Gold Hall: 74-83
+  const mG=document.getElementById('seatMapGold'); mG.innerHTML='';
+  for(let i=74;i<=83;i++){
+    const s=document.createElement('div');
+    s.className='seat empty'; s.id='seat-'+i;
+    s.textContent=i; s.onclick=()=>seatClick(i,'');
+    mG.appendChild(s);
+  }
+  // Platinum Hall: G1-G24
+  const mP=document.getElementById('seatMapPlatinum'); mP.innerHTML='';
+  for(let i=1;i<=24;i++){
     const s=document.createElement('div');
     s.className='seat empty'; s.id='seatG-'+i;
     s.textContent='G'+i; s.onclick=()=>seatClick(i,'G');
-    mg.appendChild(s);
+    mP.appendChild(s);
+  }
+  // Vision Hall: G25-G45
+  const mV=document.getElementById('seatMapVision'); mV.innerHTML='';
+  for(let i=25;i<=45;i++){
+    const s=document.createElement('div');
+    s.className='seat empty'; s.id='seatG-'+i;
+    s.textContent='G'+i; s.onclick=()=>seatClick(i,'G');
+    mV.appendChild(s);
   }
 }
 
 function updateSeatMap(){
   // Reset all seats to empty first
-  for(let i=1;i<=84;i++){
+  for(let i=1;i<=83;i++){
     const el=document.getElementById('seat-'+i);
     if(el){el.className='seat empty';el.title='';}
   }
-  for(let i=1;i<=47;i++){
+  for(let i=1;i<=45;i++){
     const el=document.getElementById('seatG-'+i);
     if(el){el.className='seat empty';el.title='';}
   }
@@ -972,8 +1000,8 @@ function populateSeatSelect(currentSeat=''){
     return slots.length===0;
   }
 
-  // Add seats 1-84
-  for(let i=1;i<=84;i++){
+  // Add seats 1-83 (84 removed)
+  for(let i=1;i<=83;i++){
     const key=String(i);
     const slots=occupied[key]||[];
     const avail=isSeatAvailable(key);
@@ -985,8 +1013,8 @@ function populateSeatSelect(currentSeat=''){
       sel.appendChild(opt);
     }
   }
-  // Add G seats
-  for(let i=1;i<=47;i++){
+  // Add G seats G1-G45 (G46,G47 removed)
+  for(let i=1;i<=45;i++){
     const key='G'+i;
     const slots=occupied[key]||[];
     const avail=isSeatAvailable(key);
@@ -1124,7 +1152,7 @@ extendAdmission=async function(){
 
 // ===== DASHBOARD =====
 function updateDashboard(){
-  const total=131;
+  const total=128;
   const totalStudents=window._students.length;
 
   // Count unique occupied seats (a seat with morning+evening = 1 occupied seat)
@@ -1136,18 +1164,29 @@ function updateDashboard(){
   const paid=window._students.filter(s=>s.feeStatus==='paid').length;
   const due=window._students.filter(s=>s.feeStatus!=='paid').length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
-  // Current month income (matching graph) - based on lastPaid this month
+  // Current month income from payments collection
   const now2=new Date();
   const curMM=String(now2.getMonth()+1).padStart(2,'0');
   const curYYYY=String(now2.getFullYear());
-  const rev=window._students
-    .filter(s=>{
-      if(!s.lastPaid) return false;
-      const parts=s.lastPaid.split('-');
-      if(parts.length!==3) return false;
-      return parts[1]===curMM && parts[2]===curYYYY;
-    })
-    .reduce((sum,s)=>sum+(s.fee||0),0);
+  // Use cached payments if available, else use lastPaid fallback
+  let rev=0;
+  if(window._cachedPayments){
+    rev=window._cachedPayments
+      .filter(p=>{
+        if(!p.paidDate) return false;
+        const parts=p.paidDate.split('-');
+        return parts.length===3 && parts[1]===curMM && parts[2]===curYYYY;
+      })
+      .reduce((sum,p)=>sum+Math.max(0,parseFloat(p.fee)||0),0);
+  } else {
+    rev=window._students
+      .filter(s=>{
+        if(!s.lastPaid) return false;
+        const parts=s.lastPaid.split('-');
+        return parts.length===3 && parts[1]===curMM && parts[2]===curYYYY;
+      })
+      .reduce((sum,s)=>sum+(s.fee||0),0);
+  }
 
   document.getElementById('statOcc').textContent=occ;
   document.getElementById('statVac').textContent=total-occ;
@@ -1192,37 +1231,45 @@ async function drawChart(){
   const now=new Date();
   const months=[]; const monthKeys=[]; const incomes=[]; const expenseData=[];
 
-  // Build last 6 months labels and keys (MM-YYYY)
   for(let i=5;i>=0;i--){
     const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    // Show only month name + short year e.g. "Feb 26"
     const monthName=d.toLocaleString('default',{month:'short'});
     const shortYear=d.getFullYear().toString().slice(2);
     months.push(monthName+" '"+shortYear);
-    const mm=String(d.getMonth()+1).padStart(2,'0');
-    const yyyy=String(d.getFullYear());
-    monthKeys.push({mm,yyyy});
+    monthKeys.push({
+      mm:String(d.getMonth()+1).padStart(2,'0'),
+      yyyy:String(d.getFullYear())
+    });
   }
 
-  // Calculate INCOME per month
-  // Income = fees paid by students whose lastPaid is in that month (DD-MM-YYYY)
+  // Get income from payments collection (permanent records)
+  let allPayments=[];
+  try{
+    const paySnap=await getDocs(collection(db,'payments'));
+    allPayments=paySnap.docs.map(d=>d.data());
+  }catch(e){console.error('Payments fetch error:',e);}
+
+  function parseDate(ddmmyyyy){
+    if(!ddmmyyyy) return null;
+    const clean=ddmmyyyy.replace(/\./g,'-');
+    const parts=clean.split('-');
+    if(parts.length!==3) return null;
+    if(parts[0].length===4) return {mm:parts[1],yyyy:parts[0]};
+    return {mm:parts[1],yyyy:parts[2]};
+  }
+
   monthKeys.forEach(({mm,yyyy})=>{
-    const monthIncome=window._students
-      .filter(s=>{
-        if(!s.lastPaid) return false;
-        // lastPaid stored as DD-MM-YYYY
-        const parts=s.lastPaid.split('-');
-        if(parts.length!==3) return false;
-        const pMM=parts[1]; // month
-        const pYYYY=parts[2]; // year
-        return pMM===mm && pYYYY===yyyy;
+    // Sum all payments (including reversals which are negative)
+    const monthIncome=allPayments
+      .filter(p=>{
+        const d=parseDate(p.paidDate);
+        return d && d.mm===mm && d.yyyy===yyyy;
       })
-      .reduce((sum,s)=>sum+(s.fee||0),0);
-    incomes.push(monthIncome);
+      .reduce((sum,p)=>sum+(parseFloat(p.fee)||0),0);
+    incomes.push(Math.max(0,monthIncome));
   });
 
-  // Calculate EXPENSES per month from Firebase
-  // expenses stored with date as DD-MM-YYYY
+  // Get expenses
   let allExpenses=[];
   try{
     const expSnap=await getDocs(collection(db,'expenses'));
@@ -1232,20 +1279,8 @@ async function drawChart(){
   monthKeys.forEach(({mm,yyyy})=>{
     const monthExp=allExpenses
       .filter(e=>{
-        if(!e.date) return false;
-        // Handle both DD-MM-YYYY and DD.MM.YYYY formats
-        const cleanDate=e.date.replace(/\./g,'-');
-        const parts=cleanDate.split('-');
-        if(parts.length!==3) return false;
-        let pMM, pYYYY;
-        if(parts[0].length===4){
-          // YYYY-MM-DD format
-          pMM=parts[1]; pYYYY=parts[0];
-        } else {
-          // DD-MM-YYYY format
-          pMM=parts[1]; pYYYY=parts[2];
-        }
-        return pMM===mm && pYYYY===yyyy;
+        const d=parseDate(e.date);
+        return d && d.mm===mm && d.yyyy===yyyy;
       })
       .reduce((sum,e)=>sum+(parseFloat(e.amount)||0),0);
     expenseData.push(monthExp);
@@ -1262,27 +1297,14 @@ async function drawChart(){
       ]
     },
     options:{
-      responsive:true,
-      maintainAspectRatio:false,
+      responsive:true,maintainAspectRatio:false,
       plugins:{
         legend:{labels:{font:{size:10}}},
-        tooltip:{
-          callbacks:{
-            label:function(ctx){
-              return ctx.dataset.label+': ₹'+ctx.parsed.y.toLocaleString('en-IN');
-            }
-          }
-        }
+        tooltip:{callbacks:{label:ctx=>'₹'+ctx.parsed.y.toLocaleString('en-IN')}}
       },
       scales:{
         x:{ticks:{font:{size:9}}},
-        y:{
-          beginAtZero:true,
-          ticks:{
-            callback:v=>'₹'+v.toLocaleString('en-IN'),
-            font:{size:9}
-          }
-        }
+        y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}
       }
     }
   });
@@ -1422,19 +1444,77 @@ openStuDetail=function(id){
 markFeePaid=async function(){
   if(!window._curStuId) return;
   const s=window._students.find(x=>x.id===window._curStuId);
-  const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
-  const newTo=`${String(nxt.getDate()).padStart(2,'0')}-${String(nxt.getMonth()+1).padStart(2,'0')}-${nxt.getFullYear()}`;
-  await updateDoc(doc(db,'students',window._curStuId),{feeStatus:'paid',admTo:newTo,lastPaid:todayDDMMYYYY()});
-  showToast('Fee marked as paid! ✅');
+  if(!s) return;
+
+  // Extend from admTo date (not today)
+  function addOneMonth(ddmmyyyy){
+    if(!ddmmyyyy) return todayDDMMYYYY();
+    const parts=ddmmyyyy.split('-');
+    if(parts.length!==3) return todayDDMMYYYY();
+    const d=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
+    d.setMonth(d.getMonth()+1);
+    return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();
+  }
+
+  const newTo=addOneMonth(s.admTo);
+  const today=todayDDMMYYYY();
+
+  // Save payment record permanently in payments collection
+  await setDoc(doc(collection(db,'payments')),{
+    studentId:s.id,
+    studentName:s.name,
+    seat:(s.seatPrefix||'')+s.seat,
+    fee:s.fee||0,
+    paidDate:today,
+    admFrom:s.admTo||today, // new period starts from old admTo
+    admTo:newTo,
+    slot:s.slot
+  });
+
+  await updateDoc(doc(db,'students',window._curStuId),{
+    feeStatus:'paid',
+    admTo:newTo,
+    lastPaid:today
+  });
+  showToast('Fee paid! Renewed till '+newTo+' ✅');
   closeModal('stuDetailModal');
   loadStudents();
 };
 
 markFeeUnpaid=async function(){
   if(!window._curStuId) return;
-  if(!confirm('Mark fee as unpaid/due?')) return;
-  await updateDoc(doc(db,'students',window._curStuId),{feeStatus:'due'});
-  showToast('Fee marked as due');
+  if(!confirm('Mark fee as unpaid/due? This will subtract the amount from this month\'s collection.')) return;
+  const s=window._students.find(x=>x.id===window._curStuId);
+  if(!s) return;
+
+  // Save reversal record (negative amount) to payments
+  await setDoc(doc(collection(db,'payments')),{
+    studentId:s.id,
+    studentName:s.name,
+    seat:(s.seatPrefix||'')+s.seat,
+    fee:-(s.fee||0), // negative = reversal
+    paidDate:todayDDMMYYYY(),
+    type:'reversal',
+    slot:s.slot
+  });
+
+  // Revert admTo back by one month
+  function subtractOneMonth(ddmmyyyy){
+    if(!ddmmyyyy) return '';
+    const parts=ddmmyyyy.split('-');
+    if(parts.length!==3) return ddmmyyyy;
+    const d=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
+    d.setMonth(d.getMonth()-1);
+    return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();
+  }
+
+  const revertedTo=subtractOneMonth(s.admTo);
+  await updateDoc(doc(db,'students',window._curStuId),{
+    feeStatus:'due',
+    admTo:revertedTo,
+    lastPaid:''
+  });
+  showToast('Fee marked as due. Amount subtracted from collection.');
   closeModal('stuDetailModal');
   loadStudents();
 };
@@ -1481,9 +1561,13 @@ editStudent=function(){
 
 deleteStudent=async function(){
   if(!window._curStuId) return;
-  if(!confirm('Delete this student? This cannot be undone.')) return;
+  const s=window._students.find(x=>x.id===window._curStuId);
+  if(!s) return;
+  if(!confirm('Delete '+s.name+'?\n\nNote: Payment history will be preserved in records.')) return;
+  // Only delete from students collection
+  // Payments collection is NOT deleted - history preserved
   await deleteDoc(doc(db,'students',window._curStuId));
-  showToast('Student deleted');
+  showToast('Student deleted. Payment history preserved. ✅');
   closeModal('stuDetailModal');
   loadStudents();
 };
@@ -1674,12 +1758,12 @@ openApproval=async function(id){
   approvalSel.innerHTML='<option value="">Select seat</option>';
   const occupied={};
   window._students.forEach(s=>{const k=(s.seatPrefix||'')+s.seat;if(!occupied[k])occupied[k]=[];occupied[k].push(s.slot);});
-  for(let i=1;i<=84;i++){
+  for(let i=1;i<=83;i++){
     const k=String(i); const slots=occupied[k]||[];
     let avail=p.slot==='full'?slots.length===0:!slots.includes('full')&&!slots.includes(p.slot);
     if(avail){const o=document.createElement('option');o.value=k;o.textContent='Seat '+i;approvalSel.appendChild(o);}
   }
-  for(let i=1;i<=47;i++){
+  for(let i=1;i<=45;i++){
     const k='G'+i; const slots=occupied[k]||[];
     let avail=p.slot==='full'?slots.length===0:!slots.includes('full')&&!slots.includes(p.slot);
     if(avail){const o=document.createElement('option');o.value=k;o.textContent='G'+i+' (Ground)';approvalSel.appendChild(o);}
@@ -1844,10 +1928,35 @@ function renderFeeList(list){
 }
 
 quickPay=async function(id){
-  const nxt=new Date(); nxt.setMonth(nxt.getMonth()+1);
-  const newTo=`${String(nxt.getDate()).padStart(2,'0')}-${String(nxt.getMonth()+1).padStart(2,'0')}-${nxt.getFullYear()}`;
-  await updateDoc(doc(db,'students',id),{feeStatus:'paid',admTo:newTo,lastPaid:todayDDMMYYYY()});
-  showToast('Fee collected! ✅');
+  const s=window._students.find(x=>x.id===id);
+  if(!s) return;
+
+  function addOneMonthQ(ddmmyyyy){
+    if(!ddmmyyyy) return todayDDMMYYYY();
+    const parts=ddmmyyyy.split('-');
+    if(parts.length!==3) return todayDDMMYYYY();
+    const d=new Date(parseInt(parts[2]),parseInt(parts[1])-1,parseInt(parts[0]));
+    d.setMonth(d.getMonth()+1);
+    return String(d.getDate()).padStart(2,'0')+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+d.getFullYear();
+  }
+
+  const newTo=addOneMonthQ(s.admTo);
+  const today=todayDDMMYYYY();
+
+  // Save to payments collection
+  await setDoc(doc(collection(db,'payments')),{
+    studentId:id,
+    studentName:s.name,
+    seat:(s.seatPrefix||'')+s.seat,
+    fee:s.fee||0,
+    paidDate:today,
+    admFrom:s.admTo||today,
+    admTo:newTo,
+    slot:s.slot
+  });
+
+  await updateDoc(doc(db,'students',id),{feeStatus:'paid',admTo:newTo,lastPaid:today});
+  showToast('Fee collected! Renewed till '+newTo+' ✅');
   await loadStudents(); filterFees();
 };
 
@@ -2214,8 +2323,8 @@ showStatDetail=function(type){
 
   } else if(type==='vacant'){
     const allSeats=[];
-    for(let i=1;i<=84;i++) if(!occSeats.has(String(i))) allSeats.push(String(i));
-    for(let i=1;i<=47;i++) if(!occSeats.has('G'+i)) allSeats.push('G'+i);
+    for(let i=1;i<=83;i++) if(!occSeats.has(String(i))) allSeats.push(String(i));
+    for(let i=1;i<=45;i++) if(!occSeats.has('G'+i)) allSeats.push('G'+i);
     html=allSeats.length?`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:4px">`+
       allSeats.map(s=>`<div style="background:var(--bg);border-radius:8px;padding:8px;text-align:center;font-weight:700;font-size:13px;color:var(--ok);border:1px solid #a5d6a7">${s}</div>`).join('')+
       '</div>':
@@ -2330,6 +2439,16 @@ deleteOldExpenses=async function(){
   loadExpenses();
   drawChart();
 };
+
+
+async function loadPaymentsCache(){
+  try{
+    const snap=await getDocs(collection(db,'payments'));
+    window._cachedPayments=snap.docs.map(d=>d.data());
+  }catch(e){
+    window._cachedPayments=[];
+  }
+}
 
 // ===== WIRE UP ALL GLOBAL CALLBACKS =====
 window._filterFees=filterFees;
