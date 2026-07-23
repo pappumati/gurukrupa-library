@@ -1260,100 +1260,79 @@ async function loadPendingCount(){
   } else el.innerHTML='';
 }
 
-async function drawChart(){
-  const ctx=document.getElementById('incomeChart');
-  if(!ctx) return;
+function drawChart(){
+  // Use setTimeout to ensure canvas is visible and Chart.js loaded
+  setTimeout(async function(){
+    const canvasEl=document.getElementById('incomeChart');
+    if(!canvasEl){console.error('incomeChart canvas not found');return;}
+    if(typeof Chart==='undefined'){console.error('Chart.js not loaded');return;}
 
-  const now=new Date();
-  const months=[]; const monthKeys=[]; const incomes=[]; const expenseData=[];
+    const now=new Date();
+    const months=[]; const monthKeys=[]; const incomes=[]; const expData=[];
 
-  for(let i=5;i>=0;i--){
-    const d=new Date(now.getFullYear(),now.getMonth()-i,1);
-    const monthName=d.toLocaleString('default',{month:'short'});
-    const shortYear=d.getFullYear().toString().slice(2);
-    months.push(monthName+" '"+shortYear);
-    monthKeys.push({
-      mm:String(d.getMonth()+1).padStart(2,'0'),
-      yyyy:String(d.getFullYear())
-    });
-  }
-
-  // Parse any date format DD-MM-YYYY or YYYY-MM-DD
-  function parseDt(s){
-    if(!s) return null;
-    const p=String(s).replace(/[./]/g,'-').split('-');
-    if(p.length!==3) return null;
-    return p[0].length===4?{mm:p[1].padStart(2,'0'),yyyy:p[0]}:{mm:p[1].padStart(2,'0'),yyyy:p[2]};
-  }
-
-  // Get payments collection records
-  let allPayments=[];
-  try{
-    const paySnap=await getDocs(collection(db,'payments'));
-    allPayments=paySnap.docs.map(d=>d.data());
-  }catch(e){console.error('Payments fetch:',e);}
-
-  monthKeys.forEach(({mm,yyyy})=>{
-    // From payments collection (new records)
-    const fromPay=allPayments
-      .filter(p=>{ const d=parseDt(p.paidDate); return d&&d.mm===mm&&d.yyyy===yyyy&&(parseFloat(p.fee)||0)>0; })
-      .reduce((s,p)=>s+(parseFloat(p.fee)||0),0);
-
-    // From students lastPaid (existing/old data)
-    const fromStu=window._students
-      .filter(s=>{
-        if(!s.lastPaid) return false;
-        const d=parseDt(s.lastPaid);
-        return d&&d.mm===mm&&d.yyyy===yyyy;
-      })
-      .reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
-
-    // Use sum of both (payments collection adds new, students covers old)
-    // No double counting because new payments use payments collection
-    // and old data only exists in lastPaid
-    const total = fromPay > 0 ? fromPay : fromStu;
-    incomes.push(total);
-  });
-
-  // Get expenses
-  let allExpenses=[];
-  try{
-    const expSnap=await getDocs(collection(db,'expenses'));
-    allExpenses=expSnap.docs.map(d=>d.data());
-  }catch(e){console.error('Expense fetch error:',e);}
-
-  monthKeys.forEach(({mm,yyyy})=>{
-    const monthExp=allExpenses
-      .filter(e=>{
-        const d=parseDate(e.date);
-        return d && d.mm===mm && d.yyyy===yyyy;
-      })
-      .reduce((sum,e)=>sum+(parseFloat(e.amount)||0),0);
-    expenseData.push(monthExp);
-  });
-
-  if(window._chart) window._chart.destroy();
-  window._chart=new Chart(ctx,{
-    type:'bar',
-    data:{
-      labels:months,
-      datasets:[
-        {label:'Income (₹)',data:incomes,backgroundColor:'rgba(26,58,107,.8)',borderRadius:5},
-        {label:'Expenses (₹)',data:expenseData,backgroundColor:'rgba(230,92,0,.6)',borderRadius:5}
-      ]
-    },
-    options:{
-      responsive:true,maintainAspectRatio:false,
-      plugins:{
-        legend:{labels:{font:{size:10}}},
-        tooltip:{callbacks:{label:ctx=>'₹'+ctx.parsed.y.toLocaleString('en-IN')}}
-      },
-      scales:{
-        x:{ticks:{font:{size:9}}},
-        y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}
-      }
+    for(let i=5;i>=0;i--){
+      const d=new Date(now.getFullYear(),now.getMonth()-i,1);
+      months.push(d.toLocaleString('default',{month:'short'})+"'"+(d.getFullYear()+'').slice(2));
+      monthKeys.push({mm:String(d.getMonth()+1).padStart(2,'0'),yyyy:String(d.getFullYear())});
     }
-  });
+
+    function pd(s){
+      if(!s) return null;
+      const p=String(s).replace(/[.\/]/g,'-').split('-');
+      if(p.length!==3) return null;
+      return p[0].length===4?{mm:p[1].padStart(2,'0'),yyyy:p[0]}:{mm:p[1].padStart(2,'0'),yyyy:p[2]};
+    }
+
+    // Get payments
+    let pays=[];
+    try{const snap=await getDocs(collection(db,'payments'));pays=snap.docs.map(d=>d.data());}catch(e){}
+
+    // Get expenses
+    let exps=[];
+    try{const snap=await getDocs(collection(db,'expenses'));exps=snap.docs.map(d=>d.data());}catch(e){}
+
+    monthKeys.forEach(({mm,yyyy})=>{
+      // Income from payments collection
+      const fromPay=pays.filter(p=>{const d=pd(p.paidDate);return d&&d.mm===mm&&d.yyyy===yyyy&&(parseFloat(p.fee)||0)>0;})
+        .reduce((s,p)=>s+(parseFloat(p.fee)||0),0);
+      // Income from students lastPaid (old data)
+      const fromStu=window._students.filter(s=>{const d=pd(s.lastPaid);return d&&d.mm===mm&&d.yyyy===yyyy;})
+        .reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
+      incomes.push(fromPay>0?fromPay:fromStu);
+
+      // Expenses
+      const monthExp=exps.filter(e=>{const d=pd(e.date);return d&&d.mm===mm&&d.yyyy===yyyy;})
+        .reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
+      expData.push(monthExp);
+    });
+
+    if(window._chart){try{window._chart.destroy();}catch(e){}}
+
+    try{
+      window._chart=new Chart(canvasEl,{
+        type:'bar',
+        data:{
+          labels:months,
+          datasets:[
+            {label:'Income (₹)',data:incomes,backgroundColor:'rgba(26,58,107,.85)',borderRadius:6},
+            {label:'Expenses (₹)',data:expData,backgroundColor:'rgba(230,92,0,.7)',borderRadius:6}
+          ]
+        },
+        options:{
+          responsive:true,maintainAspectRatio:false,
+          plugins:{
+            legend:{labels:{font:{size:10}}},
+            tooltip:{callbacks:{label:ctx=>'₹'+ctx.parsed.y.toLocaleString('en-IN')}}
+          },
+          scales:{
+            x:{ticks:{font:{size:9}}},
+            y:{beginAtZero:true,ticks:{callback:v=>'₹'+v.toLocaleString('en-IN'),font:{size:9}}}
+          }
+        }
+      });
+      console.log('Chart drawn! Income:',incomes,'Expenses:',expData);
+    }catch(err){console.error('Chart error:',err);}
+  },500);
 }
 
 // ===== ADD/EDIT STUDENT =====
