@@ -1200,8 +1200,21 @@ function updateDashboard(){
   );
   const occ=uniqueSeats.size;
 
-  const paid=window._students.filter(s=>s.feeStatus==='paid').length;
-  const due=window._students.filter(s=>s.feeStatus!=='paid').length;
+  // Monthly paid/due - based on current month
+  const nowM=new Date();
+  const curMM2=String(nowM.getMonth()+1).padStart(2,'0');
+  const curYY2=String(nowM.getFullYear());
+  function pdMonth(dateStr){
+    if(!dateStr) return false;
+    const p=String(dateStr).replace(/[./]/g,'-').split('-');
+    if(p.length!==3) return false;
+    if(p[0].length===4) return p[1].padStart(2,'0')===curMM2&&p[0]===curYY2;
+    return p[1].padStart(2,'0')===curMM2&&p[2]===curYY2;
+  }
+  // Paid this month = lastPaid in current month
+  const paid=window._students.filter(s=>pdMonth(s.lastPaid)).length;
+  // Due this month = not paid this month AND admission active (not expired)
+  const due=window._students.filter(s=>!pdMonth(s.lastPaid)&&!isExpired(s)).length;
   const exp=window._students.filter(s=>isExpiring(s)).length;
   // Current month income
   const now2=new Date();
@@ -2400,29 +2413,54 @@ showStatDetail=function(type){
       </div>`).join(''):'<div class="empty"><div class="emo">💰</div><div>No payments this month yet</div></div>');
 
   } else if(type==='paid'){
-    list=window._students.filter(s=>s.feeStatus==='paid');
-    html=list.length?list.map(s=>`
+    const nowP=new Date();
+    const pMM=String(nowP.getMonth()+1).padStart(2,'0');
+    const pYY=String(nowP.getFullYear());
+    const mName=nowP.toLocaleString('default',{month:'long'});
+    function isPaidThisMonth(s){
+      if(!s.lastPaid) return false;
+      const p=String(s.lastPaid).replace(/[./]/g,'-').split('-');
+      if(p.length!==3) return false;
+      if(p[0].length===4) return p[1].padStart(2,'0')===pMM&&p[0]===pYY;
+      return p[1].padStart(2,'0')===pMM&&p[2]===pYY;
+    }
+    list=window._students.filter(s=>isPaidThisMonth(s));
+    html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">${mName} ${pYY} — ${list.length} students paid</div>`+
+    (list.length?list.map(s=>`
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ₹${s.fee||0}</div>
+          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • Paid: ${s.lastPaid||'-'}</div>
         </div>
-        <span class="badge b-paid">Paid</span>
-      </div>`).join(''):'<div class="empty"><div class="emo">✅</div><div>No paid students</div></div>';
+        <div style="font-weight:700;color:var(--ok)">₹${s.fee||0}</div>
+      </div>`).join(''):'<div class="empty"><div class="emo">✅</div><div>No payments this month yet</div></div>');
 
   } else if(type==='due'){
-    list=window._students.filter(s=>s.feeStatus!=='paid');
-    html=list.length?list.map(s=>`
+    const nowD=new Date();
+    const dMM=String(nowD.getMonth()+1).padStart(2,'0');
+    const dYY=String(nowD.getFullYear());
+    const dName=nowD.toLocaleString('default',{month:'long'});
+    function isNotPaidThisMonth(s){
+      if(!s.lastPaid) return true;
+      const p=String(s.lastPaid).replace(/[./]/g,'-').split('-');
+      if(p.length!==3) return true;
+      if(p[0].length===4) return !(p[1].padStart(2,'0')===dMM&&p[0]===dYY);
+      return !(p[1].padStart(2,'0')===dMM&&p[2]===dYY);
+    }
+    list=window._students.filter(s=>isNotPaidThisMonth(s)&&!isExpired(s));
+    html=`<div style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600">${dName} ${dYY} — ${list.length} students due</div>`+
+    (list.length?list.map(s=>`
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
           <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ₹${s.fee||0}</div>
+          <div style="font-size:10px;color:var(--err)">Due till: ${s.admTo||'-'}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
           <span class="badge b-due">Due</span>
           <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
         </div>
-      </div>`).join(''):'<div class="empty"><div class="emo">🎉</div><div>No dues! All paid!</div></div>';
+      </div>`).join(''):'<div class="empty"><div class="emo">🎉</div><div>No dues this month!</div></div>');
 
   } else if(type==='expiring'){
     list=window._students.filter(s=>isExpiring(s));
