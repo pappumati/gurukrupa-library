@@ -387,64 +387,21 @@
   <!-- REPORTS -->
   <div class="page" id="page-reports">
     <div class="card">
-      <div class="card-title">📅 Select Month for Reports</div>
+      <div class="card-title">Month Filter</div>
       <input type="month" class="form-control" id="reportMonth"/>
-      <div style="font-size:11px;color:var(--muted);margin-top:6px">Leave empty for all-time report</div>
     </div>
     <div class="card">
       <div class="card-title">Outstanding Dues</div>
       <div id="duesList"></div>
     </div>
-    <div class="section-title" style="margin-bottom:10px">📥 Month-wise Reports</div>
-    <button class="report-btn" onclick="dlReport('students')">
-      <span style="font-size:24px">👥</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Students Report</div>
-        <div style="font-size:11px;color:var(--muted)">Students joined in selected month</div>
-      </div>
-    </button>
-    <button class="report-btn" onclick="dlReport('fees')">
-      <span style="font-size:24px">💰</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Fee Collection Report</div>
-        <div style="font-size:11px;color:var(--muted)">Fees paid in selected month</div>
-      </div>
-    </button>
-    <button class="report-btn" onclick="dlReport('expenses')">
-      <span style="font-size:24px">🧾</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Expenses Report</div>
-        <div style="font-size:11px;color:var(--muted)">Expenses in selected month</div>
-      </div>
-    </button>
-    <button class="report-btn" onclick="dlReport('income')">
-      <span style="font-size:24px">📊</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Income vs Expense</div>
-        <div style="font-size:11px;color:var(--muted)">Net profit for selected month</div>
-      </div>
-    </button>
-    <button class="report-btn" onclick="dlReport('dues')">
-      <span style="font-size:24px">⚠️</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Outstanding Dues</div>
-        <div style="font-size:11px;color:var(--muted)">Students with pending fees</div>
-      </div>
-    </button>
-    <button class="report-btn" onclick="dlReport('attendance')">
-      <span style="font-size:24px">📋</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Attendance Report</div>
-        <div style="font-size:11px;color:var(--muted)">Today's attendance</div>
-      </div>
-    </button>
-    <button class="report-btn" onclick="dlReport('inventory')">
-      <span style="font-size:24px">📦</span>
-      <div>
-        <div style="font-weight:700;font-size:13px">Inventory Report</div>
-        <div style="font-size:11px;color:var(--muted)">Equipment status</div>
-      </div>
-    </button>
+    <div class="section-title" style="margin-bottom:10px">📥 Download Reports</div>
+    <button class="report-btn" onclick="dlReport('students')"><span style="font-size:24px">👥</span><div><div style="font-weight:700;font-size:13px">Students Report</div><div style="font-size:11px;color:var(--muted)">All student details</div></div></button>
+    <button class="report-btn" onclick="dlReport('fees')"><span style="font-size:24px">💰</span><div><div style="font-weight:700;font-size:13px">Fee Collection</div><div style="font-size:11px;color:var(--muted)">Month-wise fee report</div></div></button>
+    <button class="report-btn" onclick="dlReport('expenses')"><span style="font-size:24px">🧾</span><div><div style="font-weight:700;font-size:13px">Expenses Report</div><div style="font-size:11px;color:var(--muted)">Month-wise expenses</div></div></button>
+    <button class="report-btn" onclick="dlReport('income')"><span style="font-size:24px">📊</span><div><div style="font-weight:700;font-size:13px">Income vs Expense</div><div style="font-size:11px;color:var(--muted)">Net profit report</div></div></button>
+    <button class="report-btn" onclick="dlReport('dues')"><span style="font-size:24px">⚠️</span><div><div style="font-weight:700;font-size:13px">Outstanding Dues</div><div style="font-size:11px;color:var(--muted)">Pending payments</div></div></button>
+    <button class="report-btn" onclick="dlReport('attendance')"><span style="font-size:24px">📋</span><div><div style="font-weight:700;font-size:13px">Attendance Report</div><div style="font-size:11px;color:var(--muted)">Daily attendance</div></div></button>
+    <button class="report-btn" onclick="dlReport('inventory')"><span style="font-size:24px">📦</span><div><div style="font-weight:700;font-size:13px">Inventory Report</div><div style="font-size:11px;color:var(--muted)">Equipment status</div></div></button>
 
     <!-- EXPENSES ENTRY -->
     <div style="margin-top:14px">
@@ -2082,123 +2039,54 @@ delExpense=async function(id){
 
 // ===== REPORTS =====
 dlReport=function(type){
-  const monthVal=document.getElementById('reportMonth').value; // format: YYYY-MM
-  let mm='',yyyy='',monthLabel='All Time';
-  if(monthVal){
-    const parts=monthVal.split('-');
-    yyyy=parts[0]; mm=parts[1];
-    const d=new Date(parseInt(yyyy),parseInt(mm)-1,1);
-    monthLabel=d.toLocaleString('default',{month:'long'})+' '+yyyy;
-  }
-
-  function matchMonth(dateStr){
-    if(!monthVal) return true; // no filter = all
-    if(!dateStr) return false;
-    const p=String(dateStr).replace(/[./]/g,'-').split('-');
-    if(p.length!==3) return false;
-    const dMM=p[0].length===4?p[1]:p[1];
-    const dYY=p[0].length===4?p[0]:p[2];
-    return dMM.padStart(2,'0')===mm&&dYY===yyyy;
-  }
-
+  const month=document.getElementById('reportMonth').value;
   let csv=''; let filename='';
-
+  
   if(type==='students'){
-    filename=(monthVal?monthLabel+'_':'')+'students.csv';
-    csv='Month,Name,Phone,Alt Phone,Seat,Slot,Fee(Rs),Fee Status,Admission From,Admission To,Address
-';
-    let list=window._students;
-    if(monthVal) list=list.filter(s=>matchMonth(s.admFrom)||matchMonth(s.createdAt));
-    const total=list.reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
-    csv+=list.map(s=>`"${monthLabel}","${s.name}","${s.phone||''}","${s.altPhone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.feeStatus||'due'}","${s.admFrom||''}","${s.admTo||''}","${s.address||''}"`).join('
-');
-    csv+=`
-
-Total Students,${list.length}
-Total Fee,${total}`;
-
+    filename='students.csv';
+    csv='Name,Phone,Alt Phone,Seat,Slot,Fee(Rs),Fee Status,Admission From,Admission To,Address\n';
+    csv+=window._students.map(s=>`"${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.feeStatus||'due'}","${s.admFrom||''}","${s.admTo||''}","${s.address||''}"`).join('\n');
   } else if(type==='fees'){
-    filename=(monthVal?monthLabel+'_':'')+'fee_collection.csv';
-    csv='Month,Name,Phone,Seat,Slot,Fee(Rs),Last Paid,Admission Period
-';
-    let list=window._students.filter(s=>matchMonth(s.lastPaid));
-    const total=list.reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
-    csv+=list.map(s=>`"${monthLabel}","${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.lastPaid||''}","${s.admFrom||''} to ${s.admTo||''}"`).join('
-');
-    csv+=`
-
-Total Collected,${total}
-Number of Students,${list.length}`;
-
+    filename='fee_collection.csv';
+    csv='Name,Phone,Seat,Slot,Fee(Rs),Status,Admission To\n';
+    let list=window._students;
+    if(month) list=list.filter(s=>{
+      if(!s.admTo) return false;
+      const iso=toISO(s.admTo);
+      return iso.substring(0,7)===month;
+    });
+    csv+=list.map(s=>`"${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.feeStatus||'due'}","${s.admTo||''}"`).join('\n');
   } else if(type==='expenses'){
-    filename=(monthVal?monthLabel+'_':'')+'expenses.csv';
-    csv='Month,Date,Category,Amount(Rs),Note
-';
-    let list=window._expenses.filter(e=>matchMonth(e.date));
-    const total=list.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-    csv+=list.map(e=>`"${monthLabel}","${e.date}","${e.cat}",${e.amount||0},"${e.note||''}"`).join('
-');
-    csv+=`
-
-Total Expenses,${total}
-Number of Entries,${list.length}`;
-
+    filename='expenses.csv';
+    csv='Date,Category,Amount(Rs),Note\n';
+    let list=window._expenses;
+    if(month) list=list.filter(e=>{
+      if(!e.date) return false;
+      const iso=toISO(e.date);
+      return iso.substring(0,7)===month;
+    });
+    csv+=list.map(e=>`"${e.date}","${e.cat}",${e.amount||0},"${e.note||''}"`).join('\n');
   } else if(type==='income'){
-    filename=(monthVal?monthLabel+'_':'')+'income_vs_expense.csv';
-    const paidList=window._students.filter(s=>matchMonth(s.lastPaid));
-    const totalIncome=paidList.reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
-    const expList=window._expenses.filter(e=>matchMonth(e.date));
-    const totalExp=expList.reduce((s,e)=>s+(parseFloat(e.amount)||0),0);
-    const profit=totalIncome-totalExp;
-    csv=`Month,Category,Amount(Rs)
-`;
-    csv+=`"${monthLabel}","Total Income",${totalIncome}
-`;
-    csv+=`"${monthLabel}","Total Expenses",${totalExp}
-`;
-    csv+=`"${monthLabel}","Net Profit",${profit}
-
-`;
-    csv+=`Income Details
-Name,Seat,Fee Paid
-`;
-    csv+=paidList.map(s=>`"${s.name}","${(s.seatPrefix||'')+s.seat}",${s.fee||0}`).join('
-');
-    csv+=`
-
-Expense Details
-Date,Category,Amount
-`;
-    csv+=expList.map(e=>`"${e.date}","${e.cat}",${e.amount||0}`).join('
-');
-
+    filename='income_vs_expense.csv';
+    const totalIncome=window._students.filter(s=>s.feeStatus==='paid').reduce((sum,s)=>sum+(s.fee||0),0);
+    const totalExp=window._expenses.reduce((sum,e)=>sum+(e.amount||0),0);
+    csv='Category,Amount(Rs)\n';
+    csv+=`Total Income,${totalIncome}\nTotal Expenses,${totalExp}\nNet Profit,${totalIncome-totalExp}`;
   } else if(type==='dues'){
-    filename=(monthVal?monthLabel+'_':'')+'outstanding_dues.csv';
-    csv='Name,Phone,Seat,Fee(Rs),Admission To,Status
-';
-    const list=window._students.filter(s=>!matchMonth(s.lastPaid)&&!isExpired(s));
-    csv+=list.map(s=>`"${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}",${s.fee||0},"${s.admTo||''}","Due"`).join('
-');
-    csv+=`
-
-Total Due Students,${list.length}`;
-
+    filename='outstanding_dues.csv';
+    csv='Name,Phone,Seat,Fee(Rs),Admission To\n';
+    csv+=window._students.filter(s=>s.feeStatus!=='paid').map(s=>`"${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}",${s.fee||0},"${s.admTo||''}"`).join('\n');
   } else if(type==='attendance'){
-    filename='attendance_today.csv';
-    csv='Name,Seat,Present
-';
-    csv+=window._students.map(s=>`"${s.name}","${(s.seatPrefix||'')+s.seat}","${window._att[s.id]?'Yes':'No'}"`).join('
-');
-
+    filename='attendance.csv';
+    csv='Name,Seat,Present\n';
+    csv+=window._students.map(s=>`"${s.name}","${(s.seatPrefix||'')+s.seat}","${window._att[s.id]?'Yes':'No'}"`).join('\n');
   } else if(type==='inventory'){
     filename='inventory.csv';
-    csv='Item,Quantity,Condition,Notes
-';
-    csv+=window._inv.map(i=>`"${i.name}",${i.qty},"${i.condition||'Good'}","${i.notes||''}"`).join('
-');
+    csv='Item,Quantity,Condition,Notes\n';
+    csv+=window._inv.map(i=>`"${i.name}",${i.qty},"${i.condition||'Good'}","${i.notes||''}"`).join('\n');
   }
-
-  const blob=new Blob(['﻿'+csv],{type:'text/csv;charset=utf-8'});
+  
+  const blob=new Blob([csv],{type:'text/csv'});
   const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=filename;a.click();
   showToast('Report downloaded! ✅');
 };
