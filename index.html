@@ -111,6 +111,7 @@
     .b-full{background:#dbeafe;color:#1e40af}
     .b-morning{background:#ffedd5;color:#9a3412}
     .b-evening{background:#f3e8ff;color:#6b21a8}
+    .b-unreserved{background:#e0f2fe;color:#075985}
     .b-paid{background:#dcfce7;color:#166534}
     .b-due{background:#fee2e2;color:#991b1b}
     .b-exp{background:#fef3c7;color:#92400e}
@@ -525,6 +526,7 @@
         <option value="full">Full Time (7AM–11PM) — Admin will set fee</option>
         <option value="morning">Morning Half (7AM–2PM) — Admin will set fee</option>
         <option value="evening">Evening Half (2PM–11PM) — Admin will set fee</option>
+        <option value="unreserved">Unreserved (No Fixed Seat) — Admin will set fee</option>
       </select>
     </div>
     <div class="form-group">
@@ -574,9 +576,10 @@
         <option value="full">Full Time (7AM–11PM)</option>
         <option value="morning">Morning Half (7AM–2PM)</option>
         <option value="evening">Evening Half (2PM–11PM)</option>
+        <option value="unreserved">Unreserved (No Fixed Seat)</option>
       </select>
     </div>
-    <div class="form-group">
+    <div class="form-group" id="stuSeatGroup">
       <label class="form-label">Seat Number *</label>
       <select class="form-control" id="stuSeat">
         <option value="">Select seat</option>
@@ -633,7 +636,7 @@
     <div class="modal-handle"></div>
     <div class="modal-title">📋 Approve Application</div>
     <div class="card" style="margin-bottom:10px"><div id="approvalInfo"></div></div>
-    <div class="form-group">
+    <div class="form-group" id="approvalSeatGroup">
       <label class="form-label">Allot Seat Number *</label>
       <select class="form-control" id="approvalSeat"><option value="">Select available seat</option></select>
     </div>
@@ -1011,6 +1014,7 @@ function updateSeatMap(){
   // Group students by seat - normalize key carefully
   const seatGroups={};
   window._students.forEach(s=>{
+    if(s.slot==='unreserved') return; // unreserved students don't occupy a seat
     // seatPrefix is 'G' or '' and seat is a number
     const prefix = s.seatPrefix || '';
     const num = parseInt(s.seat);
@@ -1060,12 +1064,22 @@ seatClick=function(num,prefix){
 function populateSeatSelect(currentSeat=''){
   const sel=document.getElementById('stuSeat');
   const slot=document.getElementById('stuSlot').value;
+  const seatGroup=document.getElementById('stuSeatGroup');
+  if(slot==='unreserved'){
+    if(seatGroup) seatGroup.style.display='none';
+    sel.innerHTML='<option value="">Select seat</option>';
+    sel.value='';
+    return;
+  } else if(seatGroup){
+    seatGroup.style.display='';
+  }
   sel.innerHTML='<option value="">Select seat</option>';
   
   // Build occupied map - group by seat key (normalized)
   const occupied={};
   window._students.forEach(s=>{
     if(window._editMode && s.id===window._curStuId) return;
+    if(s.slot==='unreserved') return; // unreserved students don't occupy a seat
     const prefix=s.seatPrefix||'';
     const num=parseInt(s.seat);
     const key=prefix+num;
@@ -1133,7 +1147,7 @@ filterStudents=function(){
     s.name.toLowerCase().includes(q)||
     String(s.seat).includes(q)||
     (s.phone||'').includes(q)||
-    ((s.seatPrefix||'')+s.seat).toLowerCase().includes(q)
+    (seatLabelOf(s)).toLowerCase().includes(q)
   );
   renderStudentList(f);
 };
@@ -1142,16 +1156,16 @@ function renderStudentList(list){
   const el=document.getElementById('studentList');
   if(!list.length){el.innerHTML='<div class="empty"><div class="emo">👥</div><div>No students found</div></div>';return;}
   el.innerHTML=list.map(s=>{
-    const seatLabel=(s.seatPrefix||'')+s.seat;
-    const slotLabel=s.slot==='full'?'Full':s.slot==='morning'?'Morning AM':'Evening PM';
-    const slotBadge=s.slot==='full'?'b-full':s.slot==='morning'?'b-morning':'b-evening';
+    const seatLabel=seatLabelOf(s);
+    const slotLabel=slotNameOf(s);
+    const slotBadge=slotBadgeOf(s);
     const feeBadge=s.feeStatus==='paid'?'b-paid':isExpiring(s)?'b-exp':'b-due';
     const feeLabel=s.feeStatus==='paid'?'Paid':isExpiring(s)?'Soon':'Due';
     return `<div class="list-item" onclick="openStuDetail('${s.id}')">
       <div class="avatar">${s.photoUrl?`<img src="${s.photoUrl}"/>`:'<span>'+s.name[0].toUpperCase()+'</span>'}</div>
       <div class="item-info">
         <div class="item-name">${s.name}</div>
-        <div class="item-meta">Seat ${seatLabel} • ${s.phone||''}</div>
+        <div class="item-meta">${seatLabel==="Unreserved"?"Unreserved":"Seat "+seatLabel} • ${s.phone||''}</div>
       </div>
       <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
         <span class="badge ${slotBadge}">${slotLabel}</span>
@@ -1161,6 +1175,16 @@ function renderStudentList(list){
   }).join('');
 }
 
+function seatLabelOf(s){ return s.slot==='unreserved' ? 'Unreserved' : (s.seatPrefix||'')+s.seat; }
+function slotNameOf(s,style){
+  // style: 'short' -> Full/Morning AM/Evening PM ; 'ampm' -> Full/AM/PM ; 'long' -> Full Time/Morning Half/Evening Half
+  if(s.slot==='unreserved') return 'Unreserved';
+  if(style==='ampm') return s.slot==='full'?'Full':s.slot==='morning'?'AM':'PM';
+  if(style==='long') return s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half';
+  return s.slot==='full'?'Full':s.slot==='morning'?'Morning AM':'Evening PM';
+}
+function slotBadgeOf(s){ return s.slot==='unreserved'?'b-unreserved':s.slot==='full'?'b-full':s.slot==='morning'?'b-morning':'b-evening'; }
+function slotTimeOf(s){ return s.slot==='unreserved'?'Flexible':s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM'; }
 function isExpiring(s){
   if(!s.admTo) return false;
   const iso=toISO(s.admTo);
@@ -1192,7 +1216,7 @@ function showNextExpiring(list,idx){
   window._curExpireId=s.id;
   const days=Math.ceil((new Date(toISO(s.admTo))-new Date())/(1000*60*60*24));
   document.getElementById('expireInfo').innerHTML=
-    '⚠️ <strong>'+s.name+'</strong> (Seat '+(s.seatPrefix||'')+s.seat+') admission is expiring in <strong>'+days+' day(s)</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
+    '⚠️ <strong>'+s.name+'</strong> (Seat '+seatLabelOf(s)+') admission is expiring in <strong>'+days+' day(s)</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
   document.getElementById('expireModal').classList.add('open');
   window._expireNext=function(){showNextExpiring(list,idx+1);};
 }
@@ -1206,7 +1230,7 @@ function showNextExpired(list,idx,expiringList){
   const s=list[idx];
   window._curExpireId=s.id;
   document.getElementById('expireInfo').innerHTML=
-    '🔴 <strong>'+s.name+'</strong> (Seat '+(s.seatPrefix||'')+s.seat+') admission <strong>expired</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
+    '🔴 <strong>'+s.name+'</strong> (Seat '+seatLabelOf(s)+') admission <strong>expired</strong> on <strong>'+s.admTo+'</strong>.<br><br>What would you like to do?';
   document.getElementById('expireModal').classList.add('open');
   window._expireNext=function(){showNextExpired(list,idx+1,expiringList);};
 }
@@ -1299,8 +1323,8 @@ function updateDashboard(){
   alertEl.innerHTML=expiringStudents.map(s=>{
     const days=Math.ceil((new Date(toISO(s.admTo))-new Date())/(1000*60*60*24));
     return `<div class="alert alert-warn">
-      <div><div style="font-weight:700;font-size:12px">${s.name}</div><div style="font-size:10px">Seat ${(s.seatPrefix||'')+s.seat} — Due in ${days} day(s) (${s.admTo})</div></div>
-      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
+      <div><div style="font-weight:700;font-size:12px">${s.name}</div><div style="font-size:10px">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} — Due in ${days} day(s) (${s.admTo})</div></div>
+      <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabelOf(s)}')">🔔</button>
     </div>`;
   }).join('');
 
@@ -1429,7 +1453,8 @@ saveStudent=async function(){
   const fee=parseFloat(document.getElementById('stuFee').value);
   const admFromRaw=document.getElementById('stuFrom').value;
   const admToRaw=document.getElementById('stuTo').value;
-  if(!name||!phone||!seatVal||!slot||!fee||!admFromRaw||!admToRaw){showToast('Fill all required fields');return;}
+  const seatRequired=slot!=='unreserved';
+  if(!name||!phone||(seatRequired&&!seatVal)||!slot||!fee||!admFromRaw||!admToRaw){showToast('Fill all required fields');return;}
   // Convert ISO to DD-MM-YYYY for storage
   function isoToDDMMYYYY(iso){
     if(!iso) return '';
@@ -1442,16 +1467,19 @@ saveStudent=async function(){
   if(phone.length!==10){showToast('Enter valid 10-digit phone');return;}
   if(!window._photo&&!window._editMode){showToast('📷 Photo is required!');return;}
 
-  const {seat,seatPrefix}=parseSeatValue(seatVal);
-  
-  // Check seat conflict
-  const conflict=window._students.find(s=>{
-    if(s.id===window._curStuId) return false;
-    if(s.seat!=seat||(s.seatPrefix||'')!==seatPrefix) return false;
-    if(slot==='full'||s.slot==='full') return true;
-    return slot===s.slot;
-  });
-  if(conflict){showToast(`Seat ${seatVal} already has ${conflict.name} (${conflict.slot})`);return;}
+  let seat='',seatPrefix='';
+  if(slot!=='unreserved'){
+    ({seat,seatPrefix}=parseSeatValue(seatVal));
+    // Check seat conflict (unreserved students never conflict - they hold no seat)
+    const conflict=window._students.find(s=>{
+      if(s.id===window._curStuId) return false;
+      if(s.slot==='unreserved') return false;
+      if(s.seat!=seat||(s.seatPrefix||'')!==seatPrefix) return false;
+      if(slot==='full'||s.slot==='full') return true;
+      return slot===s.slot;
+    });
+    if(conflict){showToast(`Seat ${seatVal} already has ${conflict.name} (${conflict.slot})`);return;}
+  }
 
   const data={
     name,phone,altPhone:document.getElementById('stuAltPhone').value.trim(),seat,seatPrefix,slot,fee,admFrom,admTo,
@@ -1482,18 +1510,18 @@ saveStudent=async function(){
 openStuDetail=function(id){
   const s=window._students.find(x=>x.id===id); if(!s) return;
   window._curStuId=id;
-  const seatLabel=(s.seatPrefix||'')+s.seat;
+  const seatLabel=seatLabelOf(s);
   const avatar=document.getElementById('detailAvatar');
   avatar.innerHTML=s.photoUrl?`<img src="${s.photoUrl}" style="width:100%;height:100%;object-fit:cover;border-radius:50%"/>`:'<span>'+s.name[0].toUpperCase()+'</span>';
   document.getElementById('detailName').textContent=s.name;
-  document.getElementById('detailSeat').textContent=`Seat ${seatLabel} • ${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'}`;
-  const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
+  document.getElementById('detailSeat').textContent=`${seatLabel==="Unreserved"?"Unreserved":"Seat "+seatLabel} • ${slotNameOf(s,'long')}`;
+  const slotTime=slotTimeOf(s);
   document.getElementById('detailInfo').innerHTML=`
     <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${s.phone||'-'}</span></div>
     ${s.altPhone?`<div class="info-row"><span class="info-label">Alt Phone</span><span class="info-value">${s.altPhone}</span></div>`:''}
     <div class="info-row"><span class="info-label">Address</span><span class="info-value">${s.address||'-'}</span></div>
     <div class="info-row"><span class="info-label">Seat</span><span class="info-value">${seatLabel}</span></div>
-    <div class="info-row"><span class="info-label">Slot</span><span class="info-value">${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})</span></div>
+    <div class="info-row"><span class="info-label">Slot</span><span class="info-value">${slotNameOf(s,'long')} (${slotTime})</span></div>
     <div class="info-row"><span class="info-label">Monthly Fee</span><span class="info-value">₹${(s.fee||0).toLocaleString('en-IN')}</span></div>
     <div class="info-row"><span class="info-label">Fee Status</span><span class="info-value"><span class="badge ${s.feeStatus==='paid'?'b-paid':isExpiring(s)?'b-exp':'b-due'}">${s.feeStatus==='paid'?'Paid':isExpiring(s)?'Expiring':'Due'}</span></span></div>
     <div class="info-row"><span class="info-label">Admission From</span><span class="info-value">${s.admFrom||'-'}</span></div>
@@ -1524,7 +1552,7 @@ markFeePaid=async function(){
   await setDoc(doc(collection(db,'payments')),{
     studentId:s.id,
     studentName:s.name,
-    seat:(s.seatPrefix||'')+s.seat,
+    seat:seatLabelOf(s),
     fee:s.fee||0,
     paidDate:today,
     admFrom:s.admTo||today, // new period starts from old admTo
@@ -1552,7 +1580,7 @@ markFeeUnpaid=async function(){
   await setDoc(doc(collection(db,'payments')),{
     studentId:s.id,
     studentName:s.name,
-    seat:(s.seatPrefix||'')+s.seat,
+    seat:seatLabelOf(s),
     fee:-(s.fee||0), // negative = reversal
     paidDate:todayDDMMYYYY(),
     type:'reversal',
@@ -1583,7 +1611,7 @@ markFeeUnpaid=async function(){
 sendWA=function(){
   const s=window._students.find(x=>x.id===window._curStuId);
   if(!s) return;
-  sendWADirect(s.phone,s.name,s.fee||(s.slot==='full'?1000:600),(s.seatPrefix||'')+s.seat);
+  sendWADirect(s.phone,s.name,s.fee||(s.slot==='full'?1000:600),seatLabelOf(s));
 };
 
 sendWADirect=function(phone,name,fee,seat){
@@ -1614,7 +1642,7 @@ editStudent=function(){
   document.getElementById('stuIdType').value=s.idType||'';
   document.getElementById('stuIdNum').value=s.idNumber||'';
   if(s.photoUrl){window._photo=s.photoUrl;document.getElementById('stuPhotoImg').src=s.photoUrl;document.getElementById('stuPhotoPreview').style.display='block';}
-  const seatVal=(s.seatPrefix||'')+s.seat;
+  const seatVal=seatLabelOf(s);
   populateSeatSelect(seatVal);
   closeModal('stuDetailModal');
   document.getElementById('addStudentModal').classList.add('open');
@@ -1636,8 +1664,8 @@ deleteStudent=async function(){
 // ===== RECEIPT =====
 showReceipt=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
-  const seatLabel=(s.seatPrefix||'')+s.seat;
-  const slotTime=s.slot==='full'?'7AM–11PM':s.slot==='morning'?'7AM–2PM':'2PM–11PM';
+  const seatLabel=seatLabelOf(s);
+  const slotTime=slotTimeOf(s);
   document.getElementById('receiptContent').innerHTML=`
     <img src="${LOGO_SRC}" class="receipt-logo" alt="Logo"/>
     <div class="receipt-title">GURUKRUPA LIBRARY & STUDY CIRCLE</div>
@@ -1646,7 +1674,7 @@ showReceipt=function(){
     <div class="receipt-row"><span>Student</span><span>${s.name}</span></div>
     <div class="receipt-row"><span>Phone</span><span>${s.phone||'-'}</span></div>
     <div class="receipt-row"><span>Seat No.</span><span>${seatLabel}</span></div>
-    <div class="receipt-row"><span>Slot</span><span>${s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})</span></div>
+    <div class="receipt-row"><span>Slot</span><span>${slotNameOf(s,'long')} (${slotTime})</span></div>
     <div class="receipt-row"><span>Period</span><span>${s.admFrom||'-'} to ${s.admTo||'-'}</span></div>
     <div class="receipt-total"><span>TOTAL PAID</span><span>₹${(s.fee||0).toLocaleString('en-IN')}</span></div>
     <div style="text-align:center;font-size:10px;margin-top:8px;color:#555">Gurukrupa Library welcomes you! 🙏<br>Thank you for your payment for Seat No. ${seatLabel}</div>`;
@@ -1681,9 +1709,9 @@ async function renderReceiptCanvas(){
 
 sendReceiptWA=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
-  const seatLabel=(s.seatPrefix||'')+s.seat;
-  const slotTime=s.slot==='full'?'7AM-11PM':s.slot==='morning'?'7AM-2PM':'2PM-11PM';
-  const slotName=s.slot==='full'?'Full Time':s.slot==='morning'?'Morning Half':'Evening Half';
+  const seatLabel=seatLabelOf(s);
+  const slotTime=slotTimeOf(s);
+  const slotName=slotNameOf(s,'long');
   const caption='🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 🙏\n\nWe have received your payment for:\n\n👤 Name: '+s.name+'\n🪑 Seat No: '+seatLabel+'\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Period: '+(s.admFrom||'-')+' to '+(s.admTo||'-')+'\n💰 Amount Paid: Rs.'+(s.fee||0)+'\n\nPlease attach the downloaded receipt image.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(caption),'_blank');
 };
@@ -1712,13 +1740,13 @@ dlReceipt=async function(){
 // ===== STUDENT QR =====
 showStudentQR=function(){
   const s=window._students.find(x=>x.id===window._curStuId); if(!s) return;
-  const seatLabel=(s.seatPrefix||'')+s.seat;
-  const slotTime=s.slot==='full'?'7AM-11PM':s.slot==='morning'?'7AM-2PM':'2PM-11PM';
+  const seatLabel=seatLabelOf(s);
+  const slotTime=slotTimeOf(s);
   const data=`GURUKRUPA LIBRARY\nName: ${s.name}\nSeat: ${seatLabel}\nSlot: ${slotTime}\nPhone: ${s.phone||''}\nFee: ₹${s.fee||0}/month\nValid: ${s.admFrom||''} to ${s.admTo||''}`;
   const box=document.getElementById('stuQRBox');
   box.innerHTML='';
   new QRCode(box,{text:data,width:200,height:200,colorDark:'#1a3a6b',colorLight:'#ffffff'});
-  document.getElementById('stuQRInfo').textContent=`${s.name} | Seat ${seatLabel}`;
+  document.getElementById('stuQRInfo').textContent=`${s.name} | ${seatLabel==="Unreserved"?"Unreserved":"Seat "+seatLabel}`;
   closeModal('stuDetailModal');
   document.getElementById('stuQRModal').classList.add('open');
 };
@@ -1793,7 +1821,7 @@ loadPending=async function(){
       <div class="avatar">${p.photoUrl?`<img src="${p.photoUrl}"/>`:'<span>'+p.name[0].toUpperCase()+'</span>'}</div>
       <div class="item-info">
         <div class="item-name">${p.name}</div>
-        <div class="item-meta">${p.phone} • ${p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half'}</div>
+        <div class="item-meta">${p.phone} • ${p.slot==='unreserved'?'Unreserved':p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half'}</div>
         <div class="item-meta">${p.idType}: ${p.idNumber}</div>
       </div>
       <button class="btn btn-ok btn-xs" onclick="openApproval('${p.id}')">Review</button>
@@ -1805,29 +1833,36 @@ openApproval=async function(id){
   if(!snap.exists()) return;
   const p=snap.data();
   window._curAppId=id;
-  const slotTime=p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
+  const slotTime=p.slot==='unreserved'?'Flexible':p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
+  const slotDisplayName=p.slot==='unreserved'?'Unreserved (No Fixed Seat)':p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half';
   document.getElementById('approvalInfo').innerHTML=`
     <div class="info-row"><span class="info-label">Name</span><span class="info-value">${p.name}</span></div>
     <div class="info-row"><span class="info-label">Phone</span><span class="info-value">${p.phone}</span></div>
     <div class="info-row"><span class="info-label">Address</span><span class="info-value">${p.address||'-'}</span></div>
-    <div class="info-row"><span class="info-label">Slot</span><span class="info-value">${p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half'} (${slotTime})</span></div>
+    <div class="info-row"><span class="info-label">Slot</span><span class="info-value">${slotDisplayName}${p.slot==='unreserved'?'':' ('+slotTime+')'}</span></div>
     <div class="info-row"><span class="info-label">ID Proof</span><span class="info-value">${p.idType}: ${p.idNumber}</span></div>
     <div class="info-row"><span class="info-label">Purpose</span><span class="info-value">${p.purpose||'-'}</span></div>`;
   
-  // Populate available seats for this slot
+  // Populate available seats for this slot (unreserved applicants don't need a seat)
   const approvalSel=document.getElementById('approvalSeat');
+  const approvalSeatGroup=document.getElementById('approvalSeatGroup');
   approvalSel.innerHTML='<option value="">Select seat</option>';
-  const occupied={};
-  window._students.forEach(s=>{const k=(s.seatPrefix||'')+s.seat;if(!occupied[k])occupied[k]=[];occupied[k].push(s.slot);});
-  for(let i=1;i<=83;i++){
-    const k=String(i); const slots=occupied[k]||[];
-    let avail=p.slot==='full'?slots.length===0:!slots.includes('full')&&!slots.includes(p.slot);
-    if(avail){const o=document.createElement('option');o.value=k;o.textContent='Seat '+i;approvalSel.appendChild(o);}
-  }
-  for(let i=1;i<=45;i++){
-    const k='G'+i; const slots=occupied[k]||[];
-    let avail=p.slot==='full'?slots.length===0:!slots.includes('full')&&!slots.includes(p.slot);
-    if(avail){const o=document.createElement('option');o.value=k;o.textContent='G'+i+' (Ground)';approvalSel.appendChild(o);}
+  if(p.slot==='unreserved'){
+    if(approvalSeatGroup) approvalSeatGroup.style.display='none';
+  } else {
+    if(approvalSeatGroup) approvalSeatGroup.style.display='';
+    const occupied={};
+    window._students.forEach(s=>{if(s.slot==='unreserved')return;const k=seatLabelOf(s);if(!occupied[k])occupied[k]=[];occupied[k].push(s.slot);});
+    for(let i=1;i<=83;i++){
+      const k=String(i); const slots=occupied[k]||[];
+      let avail=p.slot==='full'?slots.length===0:!slots.includes('full')&&!slots.includes(p.slot);
+      if(avail){const o=document.createElement('option');o.value=k;o.textContent='Seat '+i;approvalSel.appendChild(o);}
+    }
+    for(let i=1;i<=45;i++){
+      const k='G'+i; const slots=occupied[k]||[];
+      let avail=p.slot==='full'?slots.length===0:!slots.includes('full')&&!slots.includes(p.slot);
+      if(avail){const o=document.createElement('option');o.value=k;o.textContent='G'+i+' (Ground)';approvalSel.appendChild(o);}
+    }
   }
   
   document.getElementById('approvalFrom').value=new Date().toISOString().split('T')[0];
@@ -1838,11 +1873,13 @@ openApproval=async function(id){
 };
 
 approveApplication=async function(){
+  const p=window._curAppData;
+  const seatRequired=p.slot!=='unreserved';
   const seatVal=document.getElementById('approvalSeat').value;
   const fee=parseFloat(document.getElementById('approvalFee').value);
   const admFromRaw2=document.getElementById('approvalFrom').value;
   const admToRaw2=document.getElementById('approvalTo').value;
-  if(!seatVal||!fee||!admFromRaw2||!admToRaw2){showToast('Fill all fields');return;}
+  if((seatRequired&&!seatVal)||!fee||!admFromRaw2||!admToRaw2){showToast('Fill all fields');return;}
   function isoToDD(iso){
     if(!iso) return '';
     const p=iso.split('-');
@@ -1852,8 +1889,8 @@ approveApplication=async function(){
   const admFrom=isoToDD(admFromRaw2);
   const admTo=isoToDD(admToRaw2);
   
-  const p=window._curAppData;
-  const {seat,seatPrefix}=parseSeatValue(seatVal);
+  let seat='',seatPrefix='';
+  if(seatRequired){ ({seat,seatPrefix}=parseSeatValue(seatVal)); }
   
   // Create student
   await setDoc(doc(collection(db,'students')),{
@@ -1870,9 +1907,10 @@ approveApplication=async function(){
   await updateDoc(doc(db,'applications',window._curAppId),{status:'approved',approvedAt:new Date().toISOString()});
   
   // Send WhatsApp
-  const slotTime=p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
-  const slotName=p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half';
-  const msg='🙏 *Gurukrupa Library & Study Circle*\n\n✅ *Admission Confirmed!*\n\nDear '+p.name+',\n\nYour admission has been confirmed!\n\n🪑 Seat No: *'+seatVal+'*\n⏰ Slot: '+slotName+' ('+slotTime+')\n📅 Admission Period: *'+admFrom+' to '+admTo+'*\n💰 Monthly Fee: Rs.'+fee+'\n\nPlease arrive on time. Library timings: '+slotTime+'.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  const slotTime=p.slot==='unreserved'?'Flexible':p.slot==='full'?'7AM–11PM':p.slot==='morning'?'7AM–2PM':'2PM–11PM';
+  const slotName=p.slot==='unreserved'?'Unreserved (No Fixed Seat)':p.slot==='full'?'Full Time':p.slot==='morning'?'Morning Half':'Evening Half';
+  const seatLine=seatRequired?('🪑 Seat No: *'+seatVal+'*\n'):'';
+  const msg='🙏 *Gurukrupa Library & Study Circle*\n\n✅ *Admission Confirmed!*\n\nDear '+p.name+',\n\nYour admission has been confirmed!\n\n'+seatLine+'⏰ Slot: '+slotName+(p.slot==='unreserved'?'':' ('+slotTime+')')+'\n📅 Admission Period: *'+admFrom+' to '+admTo+'*\n💰 Monthly Fee: Rs.'+fee+'\n\nPlease arrive on time. Library timings: '+slotTime+'.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   // iPhone compatible - use location.href for WhatsApp
   setTimeout(function(){
     window.location.href='https://wa.me/91'+p.phone+'?text='+encodeURIComponent(msg);
@@ -1911,7 +1949,7 @@ function renderAttendance(){
     <div class="att-item">
       <div>
         <div style="font-weight:600;font-size:13px">${s.name}</div>
-        <div style="font-size:10px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat}</div>
+        <div style="font-size:10px;color:var(--muted)">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)}</div>
       </div>
       <button class="toggle ${window._att[s.id]?'on':'off'}" id="att-${s.id}" onclick="toggleAtt('${s.id}')"></button>
     </div>`).join('');
@@ -1971,11 +2009,11 @@ function renderFeeList(list){
   const el=document.getElementById('feeList');
   if(!list.length){el.innerHTML='<div class="empty"><div class="emo">💰</div><div>No records</div></div>';return;}
   el.innerHTML=list.map(s=>{
-    const seatLabel=(s.seatPrefix||'')+s.seat;
+    const seatLabel=seatLabelOf(s);
     return `<div class="fee-row">
       <div>
         <div style="font-weight:600;font-size:13px">${s.name}</div>
-        <div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}/mo</div>
+        <div style="font-size:10px;color:var(--muted)">${seatLabel==="Unreserved"?"Unreserved":"Seat "+seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}/mo</div>
         <div style="font-size:10px;color:var(--muted)">Valid: ${s.admFrom||'-'} → ${s.admTo||'-'}</div>
       </div>
       <div style="text-align:right;display:flex;flex-direction:column;gap:3px;align-items:flex-end">
@@ -2009,7 +2047,7 @@ quickPay=async function(id){
   await setDoc(doc(collection(db,'payments')),{
     studentId:id,
     studentName:s.name,
-    seat:(s.seatPrefix||'')+s.seat,
+    seat:seatLabelOf(s),
     fee:s.fee||0,
     paidDate:today,
     admFrom:s.admTo||today,
@@ -2028,9 +2066,9 @@ function renderDuesList(){
   const dues=window._students.filter(s=>s.feeStatus!=='paid');
   if(!dues.length){el.innerHTML='<div style="color:var(--ok);font-weight:600;text-align:center;padding:10px">🎉 No outstanding dues!</div>';return;}
   el.innerHTML=dues.map(s=>{
-    const seatLabel=(s.seatPrefix||'')+s.seat;
+    const seatLabel=seatLabelOf(s);
     return `<div class="fee-row">
-      <div><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--muted)">Seat ${seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}</div></div>
+      <div><div style="font-weight:600;font-size:13px">${s.name}</div><div style="font-size:10px;color:var(--muted)">${seatLabel==="Unreserved"?"Unreserved":"Seat "+seatLabel} • ₹${(s.fee||0).toLocaleString('en-IN')}</div></div>
       <button class="btn btn-wa btn-xs" onclick="sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabel}')">🔔 Remind</button>
     </div>`;
   }).join('');
@@ -2109,7 +2147,7 @@ dlReport=function(type){
     let list=window._students;
     if(monthVal) list=list.filter(s=>matchMonth(s.admFrom)||matchMonth(s.createdAt));
     const total=list.reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
-    csv+=list.map(s=>`"${monthLabel}","${s.name}","${s.phone||''}","${s.altPhone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.feeStatus||'due'}","${s.admFrom||''}","${s.admTo||''}","${s.address||''}"`).join('\n');
+    csv+=list.map(s=>`"${monthLabel}","${s.name}","${s.phone||''}","${s.altPhone||''}","${seatLabelOf(s)}","${s.slot}",${s.fee||0},"${s.feeStatus||'due'}","${s.admFrom||''}","${s.admTo||''}","${s.address||''}"`).join('\n');
     csv+=`
 
 Total Students,${list.length}
@@ -2120,7 +2158,7 @@ Total Fee,${total}`;
     csv='Month,Name,Phone,Seat,Slot,Fee(Rs),Last Paid,Admission Period\n';
     let list=window._students.filter(s=>matchMonth(s.lastPaid));
     const total=list.reduce((s,st)=>s+(parseFloat(st.fee)||0),0);
-    csv+=list.map(s=>`"${monthLabel}","${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}","${s.slot}",${s.fee||0},"${s.lastPaid||''}","${s.admFrom||''} to ${s.admTo||''}"`).join('\n');
+    csv+=list.map(s=>`"${monthLabel}","${s.name}","${s.phone||''}","${seatLabelOf(s)}","${s.slot}",${s.fee||0},"${s.lastPaid||''}","${s.admFrom||''} to ${s.admTo||''}"`).join('\n');
     csv+=`
 
 Total Collected,${total}
@@ -2156,7 +2194,7 @@ Number of Entries,${list.length}`;
     csv+=`Income Details
 Name,Seat,Fee Paid
 `;
-    csv+=paidList.map(s=>`"${s.name}","${(s.seatPrefix||'')+s.seat}",${s.fee||0}`).join('\n');
+    csv+=paidList.map(s=>`"${s.name}","${seatLabelOf(s)}",${s.fee||0}`).join('\n');
     csv+=`
 
 Expense Details
@@ -2168,7 +2206,7 @@ Date,Category,Amount
     filename=(monthVal?monthLabel+'_':'')+'outstanding_dues.csv';
     csv='Name,Phone,Seat,Fee(Rs),Admission To,Status\n';
     const list=window._students.filter(s=>!matchMonth(s.lastPaid)&&!isExpired(s));
-    csv+=list.map(s=>`"${s.name}","${s.phone||''}","${(s.seatPrefix||'')+s.seat}",${s.fee||0},"${s.admTo||''}","Due"`).join('\n');
+    csv+=list.map(s=>`"${s.name}","${s.phone||''}","${seatLabelOf(s)}",${s.fee||0},"${s.admTo||''}","Due"`).join('\n');
     csv+=`
 
 Total Due Students,${list.length}`;
@@ -2176,7 +2214,7 @@ Total Due Students,${list.length}`;
   } else if(type==='attendance'){
     filename='attendance_today.csv';
     csv='Name,Seat,Present\n';
-    csv+=window._students.map(s=>`"${s.name}","${(s.seatPrefix||'')+s.seat}","${window._att[s.id]?'Yes':'No'}"`).join('\n');
+    csv+=window._students.map(s=>`"${s.name}","${seatLabelOf(s)}","${window._att[s.id]?'Yes':'No'}"`).join('\n');
 
   } else if(type==='inventory'){
     filename='inventory.csv';
@@ -2356,7 +2394,7 @@ dlReceiptPNGAndWA=async function(){
   }
   // Wait briefly then open WhatsApp
   setTimeout(()=>{
-    const seatLabel=(s.seatPrefix||'')+s.seat;
+    const seatLabel=seatLabelOf(s);
     const msg=`🙏 *Gurukrupa Library & Study Circle*\n*Fee Receipt*\n\nGurukrupa Library welcomes you! 🙏\n\n✅ Payment received for:\n👤 ${s.name}\n🪑 Seat No: ${seatLabel}\n💰 Amount: Rs.${(s.fee||0).toLocaleString('en-IN')}\n📅 Period: ${s.admFrom||''} to ${s.admTo||''}\n\n📎 Receipt image has been downloaded.\nPlease attach it to this message.\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur`;
     window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(msg),'_blank');
     showToast('Image downloaded! Attach it in WhatsApp 📎');
@@ -2434,7 +2472,7 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ${s.slot==='full'?'Full':s.slot==='morning'?'Morning AM':'Evening PM'}</div>
+          <div style="font-size:11px;color:var(--muted)">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} • ${slotNameOf(s)}</div>
         </div>
         <span class="badge ${s.feeStatus==='paid'?'b-paid':'b-due'}">${s.feeStatus==='paid'?'Paid':'Due'}</span>
       </div>`).join(''):'<div class="empty"><div class="emo">🪑</div><div>No occupied seats</div></div>';
@@ -2454,9 +2492,9 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ${s.phone||''}</div>
+          <div style="font-size:11px;color:var(--muted)">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} • ${s.phone||''}</div>
         </div>
-        <span class="badge ${s.slot==='full'?'b-full':s.slot==='morning'?'b-morning':'b-evening'}">${s.slot==='full'?'Full':s.slot==='morning'?'AM':'PM'}</span>
+        <span class="badge ${slotBadgeOf(s)}">${slotNameOf(s,'ampm')}</span>
       </div>`).join(''):'<div class="empty"><div class="emo">👥</div><div>No students yet</div></div>';
 
   } else if(type==='collected'){
@@ -2479,7 +2517,7 @@ showStatDetail=function(type){
       <div class="fee-row">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • Paid: ${s.lastPaid||'-'}</div>
+          <div style="font-size:11px;color:var(--muted)">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} • Paid: ${s.lastPaid||'-'}</div>
         </div>
         <div style="font-weight:700;color:var(--ok)">₹${(s.fee||0).toLocaleString('en-IN')}</div>
       </div>`).join(''):'<div class="empty"><div class="emo">💰</div><div>No payments this month yet</div></div>');
@@ -2502,7 +2540,7 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • Paid: ${s.lastPaid||'-'}</div>
+          <div style="font-size:11px;color:var(--muted)">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} • Paid: ${s.lastPaid||'-'}</div>
         </div>
         <div style="font-weight:700;color:var(--ok)">₹${s.fee||0}</div>
       </div>`).join(''):'<div class="empty"><div class="emo">✅</div><div>No payments this month yet</div></div>');
@@ -2525,12 +2563,12 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:var(--muted)">Seat ${(s.seatPrefix||'')+s.seat} • ₹${s.fee||0}</div>
+          <div style="font-size:11px;color:var(--muted)">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} • ₹${s.fee||0}</div>
           <div style="font-size:10px;color:var(--err)">Due till: ${s.admTo||'-'}</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
           <span class="badge b-due">Due</span>
-          <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
+          <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabelOf(s)}')">🔔</button>
         </div>
       </div>`).join(''):'<div class="empty"><div class="emo">🎉</div><div>No dues this month!</div></div>');
 
@@ -2543,7 +2581,7 @@ showStatDetail=function(type){
           <div style="font-weight:700;font-size:13px">${s.name}</div>
           <div style="font-size:11px;color:var(--warn)">Expires in ${days} day(s) — ${s.admTo}</div>
         </div>
-        <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
+        <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabelOf(s)}')">🔔</button>
       </div>`;
     }).join(''):'<div class="empty"><div class="emo">✅</div><div>No expiring admissions</div></div>';
 
@@ -2553,12 +2591,12 @@ showStatDetail=function(type){
       <div class="fee-row" onclick="openStuDetail('${s.id}');closeModal('statDetailModal')" style="border-left:3px solid #757575">
         <div>
           <div style="font-weight:700;font-size:13px">${s.name}</div>
-          <div style="font-size:11px;color:#757575">Seat ${(s.seatPrefix||'')+s.seat} • Expired: ${s.admTo||'-'}</div>
+          <div style="font-size:11px;color:#757575">${seatLabelOf(s)==="Unreserved"?"Unreserved":"Seat "+seatLabelOf(s)} • Expired: ${s.admTo||'-'}</div>
           <div style="font-size:10px;color:var(--err)">Admission expired — action needed!</div>
         </div>
         <div style="display:flex;flex-direction:column;gap:3px;align-items:flex-end">
           <span class="badge" style="background:#e0e0e0;color:#424242">Expired</span>
-          <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${(s.seatPrefix||'')+s.seat}')">🔔</button>
+          <button class="btn btn-wa btn-xs" onclick="event.stopPropagation();sendWADirect('${s.phone}','${s.name}',${s.fee||0},'${seatLabelOf(s)}')">🔔</button>
         </div>
       </div>`).join(''):'<div class="empty"><div class="emo">✅</div><div>No expired admissions</div></div>';
   }
