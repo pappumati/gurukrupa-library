@@ -80,6 +80,9 @@
     .hall-title-gold{background:#fff8e1;color:#e65100;border-left:4px solid #ffc107}
     .hall-title-platinum{background:#e0f2f1;color:#00695c;border-left:4px solid #00897b}
     .hall-title-vision{background:#fce4ec;color:#880e4f;border-left:4px solid #e91e63}
+    .hall-title-unreserved{background:#e0f2fe;color:#075985;border-left:4px solid #0284c7}
+    .hall-unreserved .seat.empty{background:#e0f2fe;color:#075985;border-color:#7dd3fc}
+    .seat.filled-ur{background:#0284c7;color:#fff}
 
     /* FORMS */
     .form-group{margin-bottom:12px}
@@ -306,6 +309,7 @@
         <div class="legend-item"><div class="legend-dot" style="background:#fff8e1;border:1px solid #ffcc02"></div>Gold</div>
         <div class="legend-item"><div class="legend-dot" style="background:#e0f2f1;border:1px solid #80cbc4"></div>Platinum</div>
         <div class="legend-item"><div class="legend-dot" style="background:#fce4ec;border:1px solid #f48fb1"></div>Vision</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#e0f2fe;border:1px solid #7dd3fc"></div>Unreserved</div>
       </div>
       <div style="width:100%;overflow:hidden">
         <div class="seat-section">
@@ -327,6 +331,10 @@
         <div class="seat-section">
           <div class="seat-section-title hall-title-vision">👁️ Vision Hall (G25–G45)</div>
           <div class="seat-map-g hall-vision" id="seatMapVision"></div>
+        </div>
+        <div class="seat-section">
+          <div class="seat-section-title hall-title-unreserved">🔄 Unreserved Hall (Floating)</div>
+          <div class="seat-map hall-unreserved" id="seatMapUnreserved"></div>
         </div>
       </div>
     </div>
@@ -1045,6 +1053,25 @@ function updateSeatMap(){
     }
     el.title=names;
   });
+
+  // Unreserved Hall - dynamic boxes, one per floating student (no fixed seat)
+  const mU = document.getElementById('seatMapUnreserved');
+  if(mU){
+    mU.innerHTML='';
+    const unreservedStudents = window._students.filter(s=>s.slot==='unreserved');
+    if(unreservedStudents.length===0){
+      mU.innerHTML='<div style="grid-column:1/-1;text-align:center;color:var(--muted);font-size:11px;padding:8px">No unreserved students</div>';
+    } else {
+      unreservedStudents.forEach((s,idx)=>{
+        const b=document.createElement('div');
+        b.className='seat filled-ur';
+        b.textContent='UR'+(idx+1);
+        b.title=s.name+' (Unreserved)';
+        b.onclick=()=>openStuDetail(s.id);
+        mU.appendChild(b);
+      });
+    }
+  }
 }
 
 seatClick=function(num,prefix){
