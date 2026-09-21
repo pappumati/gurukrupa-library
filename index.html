@@ -630,6 +630,9 @@
       <button class="btn btn-a btn-sm" onclick="showReceipt()">🧾 Receipt</button>
     </div>
     <div class="detail-actions">
+      <button class="btn btn-err btn-sm" onclick="sendFinalReminder()" style="background:#b91c1c">🚨 Final Reminder</button>
+    </div>
+    <div class="detail-actions">
       <button class="btn btn-out btn-sm" onclick="editStudent()">✏️ Edit</button>
 
     </div>
@@ -817,6 +820,7 @@ function openStuDetail(id) { if(window._openStuDetail) window._openStuDetail(id)
 function markFeePaid() { if(window._markFeePaid) window._markFeePaid(); }
 function markFeeUnpaid() { if(window._markFeeUnpaid) window._markFeeUnpaid(); }
 function sendWA() { if(window._sendWA) window._sendWA(); }
+function sendFinalReminder() { if(window._sendFinalReminder) window._sendFinalReminder(); }
 function sendWADirect(p,n,f,s) { if(window._sendWADirect) window._sendWADirect(p,n,f,s); }
 function showReceipt() { if(window._showReceipt) window._showReceipt(); }
 function sendReceiptWA() { if(window._sendReceiptWA) window._sendReceiptWA(); }
@@ -881,7 +885,7 @@ document.getElementById('loginLogo').src = LOGO_SRC;
 document.getElementById('topbarLogo').src = LOGO_SRC;
 
 // UPI
-const UPI_ID = 'prdlasurkar03@okhdfcbank';
+const UPI_ID = 'prdlasurkar02@okhdfcbank';
 const UPI_NAME = 'Gurukrupa Library & Study Circle';
 
 // GLOBALS
@@ -1644,6 +1648,17 @@ sendWA=function(){
 sendWADirect=function(phone,name,fee,seat){
   const msg='🙏 *Gurukrupa Library & Study Circle*\n*Fee Reminder*\n\nDear '+name+',\n\nYour library membership fee of *₹'+fee+'* is due.\nSeat No: *'+seat+'*\n\nPlease pay at the earliest to continue using the library.\n\n💳 UPI ID: *'+UPI_ID+'*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
   window.open('https://wa.me/91'+phone+'?text='+encodeURIComponent(msg),'_blank');
+};
+
+sendFinalReminder=function(){
+  const s=window._students.find(x=>x.id===window._curStuId);
+  if(!s) return;
+  const fee=s.fee||(s.slot==='full'?1000:600);
+  const seat=seatLabelOf(s);
+  const seatLine=s.slot==='unreserved'?'':('Seat No: *'+seat+'*\n');
+  const msg='🙏 *Gurukrupa Library & Study Circle*\n*⚠️ Final Reminder*\n\nDear '+s.name+',\n\nThis is a final reminder that your library membership fee of *₹'+fee+'* is still due.\n'+seatLine+'\n*If the fee is not paid TODAY, your registration at Gurukrupa Library will be cancelled and your seat will be allotted to another candidate.*\n\nPlease pay immediately to avoid cancellation.\n\n💳 UPI ID: *'+UPI_ID+'*\n\nThank You!\nGurukrupa Library & Study Circle, Nagpur';
+  if(!confirm('Send FINAL reminder to '+s.name+'? This message warns that their seat/registration will be cancelled if unpaid today.')) return;
+  window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(msg),'_blank');
 };
 
 editStudent=function(){
@@ -2693,6 +2708,7 @@ window._openStuDetail=openStuDetail;
 window._markFeePaid=markFeePaid;
 window._markFeeUnpaid=markFeeUnpaid;
 window._sendWA=sendWA;
+window._sendFinalReminder=sendFinalReminder;
 window._sendWADirect=sendWADirect;
 {if(window._chart){window._chart.destroy();window._chart=null;}drawChart();};
 window._showReceipt=showReceipt;
