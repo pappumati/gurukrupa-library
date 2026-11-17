@@ -252,6 +252,7 @@
   <div class="page active" id="page-dashboard">
     <div id="expiryAlerts"></div>
     <div id="pendingApprovalAlert"></div>
+    <div id="bdayBar" onclick="openBirthdays()" style="display:none;cursor:pointer;align-items:center;justify-content:space-between;gap:8px;padding:12px 14px;border-radius:var(--r);margin-bottom:12px;font-weight:600;font-size:13px;box-shadow:var(--shadow)"></div>
     <div class="stats-grid">
       <div class="stat-card" onclick="showStatDetail('occupied')" style="cursor:pointer">
         <div class="stat-icon">&#x1FA91;</div><div class="stat-value" id="statOcc">-</div>
@@ -648,7 +649,7 @@
 <div class="modal-overlay" id="bdayModal">
   <div class="modal">
     <div class="modal-handle"></div>
-    <div class="modal-title">&#x1F382; Today's Birthdays &#x1F389;</div>
+    <div class="modal-title">&#x1F382; Birthdays &#x1F389;</div>
     <div id="bdayList"></div>
     <button class="btn btn-out" style="margin-top:12px" onclick="closeModal('bdayModal')">Close</button>
   </div>
@@ -2092,59 +2093,109 @@ window.viewIdPhoto=function(kind){
   document.getElementById('idPhotoModal').classList.add('open');
 };
 
-// ===== BIRTHDAY POPUP =====
-function bdayTodayKey(){
-  const d=new Date();
-  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+// ===== BIRTHDAYS (today / belated / upcoming) =====
+function bdayWishedSet(){
+  try{return JSON.parse(localStorage.getItem('bdayWishedV2')||'{}');}catch(e){return {};}
 }
-function getWishedToday(){
-  try{return JSON.parse(localStorage.getItem('bdayWished-'+bdayTodayKey())||'[]');}catch(e){return [];}
+function markWished(id,year){
+  try{const o=bdayWishedSet(); o[id+'-'+year]=1; localStorage.setItem('bdayWishedV2',JSON.stringify(o));}catch(e){}
 }
-function markWished(id){
-  try{const l=getWishedToday(); if(!l.includes(id)) l.push(id); localStorage.setItem('bdayWished-'+bdayTodayKey(),JSON.stringify(l));}catch(e){}
-}
-function isBirthdayToday(s){
-  if(!s.dob) return false;
+// Returns {delta,year,age,date} if birthday is within last 3 days .. next 7 days, else null
+function bdayInfo(s){
+  if(!s.dob) return null;
   const p=s.dob.split('-');
-  if(p.length!==3) return false;
-  const day=parseInt(p[0]), mon=parseInt(p[1]);
-  const now=new Date(), td=now.getDate(), tm=now.getMonth()+1;
-  if(day===td&&mon===tm) return true;
-  // 29 Feb birthdays: celebrate on 28 Feb in non-leap years
-  const y=now.getFullYear(), leap=(y%4===0&&y%100!==0)||y%400===0;
-  return day===29&&mon===2&&!leap&&td===28&&tm===2;
+  if(p.length!==3) return null;
+  const day=parseInt(p[0]), mon=parseInt(p[1]), by=parseInt(p[2]);
+  if(!day||!mon||!by) return null;
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  for(const y of [now.getFullYear()-1,now.getFullYear(),now.getFullYear()+1]){
+    let d=day;
+    const leap=(y%4===0&&y%100!==0)||y%400===0;
+    if(d===29&&mon===2&&!leap) d=28; // 29 Feb birthdays: celebrate on 28 Feb in non-leap years
+    const dt=new Date(y,mon-1,d);
+    const delta=Math.round((dt-today)/86400000);
+    if(delta>=-3&&delta<=7) return {delta,year:y,age:y-by,date:dt};
+  }
+  return null;
 }
+function bdayCollect(){
+  const wished=bdayWishedSet();
+  const rows={today:[],belated:[],upcoming:[]};
+  (window._students||[]).forEach(s=>{
+    const b=bdayInfo(s); if(!b) return;
+    const sent=!!wished[s.id+'-'+b.year];
+    if(b.delta===0) rows.today.push({s,b,sent});
+    else if(b.delta<0){ if(!sent) rows.belated.push({s,b,sent}); }
+    else rows.upcoming.push({s,b,sent});
+  });
+  rows.belated.sort((a,b)=>b.b.delta-a.b.delta);
+  rows.upcoming.sort((a,b)=>a.b.delta-b.b.delta);
+  return rows;
+}
+function updateBdayBar(){
+  const bar=document.getElementById('bdayBar'); if(!bar) return;
+  const r=bdayCollect();
+  const pending=r.today.filter(x=>!x.sent).length+r.belated.length;
+  if(pending>0){
+    bar.style.display='flex'; bar.style.background='#fce7f3'; bar.style.color='#831843';
+    bar.innerHTML='<span>\u{1F382} '+pending+' birthday wish'+(pending>1?'es':'')+' pending</span><span>Wish now \u{203A}</span>';
+  } else if(r.today.length||r.upcoming.length){
+    bar.style.display='flex'; bar.style.background='var(--card)'; bar.style.color='var(--p)';
+    const n=r.today.length+r.upcoming.length;
+    bar.innerHTML='<span>\u{1F382} '+n+' birthday'+(n>1?'s':'')+' this week</span><span>View \u{203A}</span>';
+  } else {
+    bar.style.display='flex'; bar.style.background='var(--card)'; bar.style.color='var(--muted)';
+    bar.innerHTML='<span>\u{1F382} Birthdays</span><span>View \u{203A}</span>';
+  }
+}
+function bdayItemHtml(x,kind){
+  const s=x.s,b=x.b;
+  const seatTxt=seatLabelOf(s)==='Unreserved'?'Unreserved':'Seat '+seatLabelOf(s);
+  const dd=String(b.date.getDate()).padStart(2,'0')+'-'+String(b.date.getMonth()+1).padStart(2,'0');
+  let meta,btn='';
+  if(kind==='today') meta='Turning '+b.age+' \u{2022} '+seatTxt;
+  else if(kind==='belated') meta='Was on '+dd+' ('+(-b.delta)+' day'+(b.delta<-1?'s':'')+' ago) \u{2022} '+seatTxt;
+  else meta=dd+' (in '+b.delta+' day'+(b.delta>1?'s':'')+') \u{2022} '+seatTxt;
+  if(kind!=='upcoming'){
+    btn='<button class="btn btn-wa btn-xs" onclick="sendBirthdayWish(\''+s.id+'\')">'+(x.sent?'\u{21BB} Again':(kind==='belated'?'\u{1F382} Belated':'\u{1F382} Wish'))+'</button>';
+  }
+  return '<div class="pending-item"><div class="avatar">'+(s.photoUrl?'<img src="'+s.photoUrl+'"/>':'<span>'+s.name[0].toUpperCase()+'</span>')+'</div>'
+    +'<div class="item-info"><div class="item-name">'+s.name+(x.sent&&kind==='today'?' \u{2705}':'')+'</div><div class="item-meta">'+meta+'</div></div>'+btn+'</div>';
+}
+function renderBirthdays(){
+  const r=bdayCollect();
+  const h=t=>'<div style="font-size:12px;font-weight:700;color:var(--muted);margin:10px 0 6px">'+t+'</div>';
+  let html='';
+  if(r.today.length) html+=h('\u{1F389} Today')+r.today.map(x=>bdayItemHtml(x,'today')).join('');
+  if(r.belated.length) html+=h('\u{23F0} Missed - send belated wishes')+r.belated.map(x=>bdayItemHtml(x,'belated')).join('');
+  if(r.upcoming.length) html+=h('\u{1F4C5} Upcoming (next 7 days)')+r.upcoming.map(x=>bdayItemHtml(x,'upcoming')).join('');
+  if(!html) html='<div class="empty"><div class="emo">\u{1F382}</div><div>No birthdays in the last 3 days or next 7 days</div></div>';
+  document.getElementById('bdayList').innerHTML=html;
+}
+window.openBirthdays=function(){
+  renderBirthdays();
+  document.getElementById('bdayModal').classList.add('open');
+};
 function checkBirthdays(){
+  updateBdayBar();
   if(window._bdayChecked) return;
   window._bdayChecked=true;
-  const wished=getWishedToday();
-  const list=(window._students||[]).filter(s=>isBirthdayToday(s)&&!wished.includes(s.id));
-  if(!list.length) return;
-  renderBirthdayList(list);
-  document.getElementById('bdayModal').classList.add('open');
-}
-function renderBirthdayList(list){
-  const yr=new Date().getFullYear();
-  document.getElementById('bdayList').innerHTML=list.map(s=>{
-    const age=yr-parseInt(s.dob.split('-')[2]);
-    const seatTxt=seatLabelOf(s)==='Unreserved'?'Unreserved':'Seat '+seatLabelOf(s);
-    return `<div class="pending-item" id="bday-${s.id}">
-      <div class="avatar">${s.photoUrl?`<img src="${s.photoUrl}"/>`:'<span>'+s.name[0].toUpperCase()+'</span>'}</div>
-      <div class="item-info">
-        <div class="item-name">${s.name}</div>
-        <div class="item-meta">Turning ${age} \u{2022} ${seatTxt}</div>
-      </div>
-      <button class="btn btn-wa btn-xs" id="bdayBtn-${s.id}" onclick="sendBirthdayWish('${s.id}')">\u{1F382} Wish</button>
-    </div>`;
-  }).join('');
+  const r=bdayCollect();
+  if(r.today.some(x=>!x.sent)) window.openBirthdays(); // auto popup only for today's pending wishes
 }
 window.sendBirthdayWish=function(id){
   const s=window._students.find(x=>x.id===id); if(!s) return;
-  const msg='\u{1F382} *Happy Birthday '+s.name+'!* \u{1F389}\n\nWishing you a very happy birthday from all of us at *Gurukrupa Library & Study Circle*! \u{1F973}\n\nMay this year bring you great success in your studies and lots of happiness in life. Keep working hard and chase your dreams! \u{1F4DA}\u{2728}\n\nWarm wishes,\nGurukrupa Library & Study Circle, Nagpur';
+  const b=bdayInfo(s); if(!b) return;
+  const late=b.delta<0;
+  const msg=(late
+    ?'\u{1F382} *Belated Happy Birthday '+s.name+'!* \u{1F389}\n\nSorry for the late wishes, but we wish you a very happy birthday from all of us at *Gurukrupa Library & Study Circle*! \u{1F973}\n\n'
+    :'\u{1F382} *Happy Birthday '+s.name+'!* \u{1F389}\n\nWishing you a very happy birthday from all of us at *Gurukrupa Library & Study Circle*! \u{1F973}\n\n')
+    +'May this year bring you great success in your studies and lots of happiness in life. Keep working hard and chase your dreams! \u{1F4DA}\u{2728}\n\nWarm wishes,\nGurukrupa Library & Study Circle, Nagpur';
   window.open('https://wa.me/91'+s.phone+'?text='+encodeURIComponent(msg),'_blank');
-  markWished(id);
-  const b=document.getElementById('bdayBtn-'+id);
-  if(b){b.textContent='\u{2705} Sent';b.disabled=true;b.style.opacity='.6';}
+  markWished(id,b.year);
+  renderBirthdays();
+  updateBdayBar();
 };
 
 // ===== ATTENDANCE =====
