@@ -1214,6 +1214,7 @@ async function loadStudents(){
     filterFees();
     checkExpiredAdmissions();
     checkBirthdays();
+    migrateIdPhotos();
   } catch(e){showToast('Error loading data');}
 }
 
@@ -1487,7 +1488,7 @@ openAddStudent=function(){
   document.getElementById('stuPhotoPreview').style.display='none';
   document.getElementById('stuDob').value='';
   document.getElementById('stuDob').max=new Date().toISOString().split('T')[0];
-  window._idPhoto=null;
+  window._idPhoto=null; window._idPhotoChanged=false;
   document.getElementById('stuIdPhotoPreview').style.display='none';
   ['stuIdPhotoGallery','stuIdPhotoCamera'].forEach(id=>document.getElementById(id).value='');
   populateSeatSelect();
@@ -1583,21 +1584,27 @@ saveStudent=async function(){
     dob:isoToDDMMYYYY(dobRaw),
     address,idType,idNumber,
     photoUrl:window._photo||'',
-    idPhotoUrl:window._idPhoto||'',
     updatedAt:new Date().toISOString()
   };
   if(!window._editMode){ data.createdAt=new Date().toISOString(); data.feeStatus='due'; }
 
   try{
-    if(window._editMode&&window._curStuId){
-      await updateDoc(doc(db,'students',window._curStuId),data);
+    const isEdit=!!(window._editMode&&window._curStuId);
+    const ref=isEdit?doc(db,'students',window._curStuId):doc(collection(db,'students'));
+    if(window._idPhoto&&(window._idPhotoChanged||!isEdit)){
+      const ok=await saveIdPhoto(ref.id,window._idPhoto);
+      if(ok){ data.hasIdPhoto=true; data.idPhotoUrl=''; }
+      else { data.idPhotoUrl=window._idPhoto; } // fallback: never lose the photo
+    }
+    if(isEdit){
+      await updateDoc(ref,data);
       showToast('Student updated! \u{2705}');
     } else {
-      await setDoc(doc(collection(db,'students')),data);
+      await setDoc(ref,data);
       showToast('Student added! \u{2705}');
     }
     closeModal('addStudentModal');
-    window._photo=null; window._idPhoto=null;
+    window._photo=null; window._idPhoto=null; window._idPhotoChanged=false;
     loadStudents();
   } catch(e){showToast('Error saving student');}
 };
@@ -1624,7 +1631,7 @@ openStuDetail=function(id){
     <div class="info-row"><span class="info-label">Admission From</span><span class="info-value">${s.admFrom||'-'}</span></div>
     <div class="info-row"><span class="info-label">Admission To</span><span class="info-value">${s.admTo||'-'}</span></div>
     <div class="info-row"><span class="info-label">ID Proof</span><span class="info-value">${s.idType||'-'} ${s.idNumber?'('+s.idNumber+')':''}</span></div>
-    <div class="info-row"><span class="info-label">ID Proof Photo</span><span class="info-value">${s.idPhotoUrl?`<img src="${s.idPhotoUrl}" onclick="viewIdPhoto('stu')" style="height:44px;border-radius:6px;border:1px solid var(--bdr,#ddd);cursor:pointer"/>`:'-'}</span></div>`;
+    <div class="info-row"><span class="info-label">ID Proof Photo</span><span class="info-value">${s.idPhotoUrl?`<img src="${s.idPhotoUrl}" onclick="viewIdPhoto('stu')" style="height:44px;border-radius:6px;border:1px solid var(--bdr,#ddd);cursor:pointer"/>`:(s.hasIdPhoto?`<span onclick="viewIdPhoto('stu')" style="color:var(--p);font-weight:600;cursor:pointer">\u{1FAAA} View</span>`:'-')}</span></div>`;
   document.getElementById('stuDetailModal').classList.add('open');
 };
 
@@ -1753,8 +1760,21 @@ editStudent=function(){
   document.getElementById('stuDob').value=ddmmToISO(s.dob||'');
   document.getElementById('stuDob').max=new Date().toISOString().split('T')[0];
   window._idPhoto=s.idPhotoUrl||null;
+  window._idPhotoChanged=!!s.idPhotoUrl; // an old photo stored inside the student record gets moved on save
   if(s.idPhotoUrl){document.getElementById('stuIdPhotoImg').src=s.idPhotoUrl;document.getElementById('stuIdPhotoPreview').style.display='block';}
-  else{document.getElementById('stuIdPhotoPreview').style.display='none';}
+  else{
+    document.getElementById('stuIdPhotoPreview').style.display='none';
+    if(s.hasIdPhoto){
+      const sid=s.id;
+      fetchIdPhoto(sid).then(d=>{
+        if(d&&window._curStuId===sid&&!window._idPhotoChanged){
+          window._idPhoto=d;
+          document.getElementById('stuIdPhotoImg').src=d;
+          document.getElementById('stuIdPhotoPreview').style.display='block';
+        }
+      });
+    }
+  }
   ['stuIdPhotoGallery','stuIdPhotoCamera'].forEach(id=>document.getElementById(id).value='');
   if(s.photoUrl){window._photo=s.photoUrl;document.getElementById('stuPhotoImg').src=s.photoUrl;document.getElementById('stuPhotoPreview').style.display='block';}
   const seatVal=seatLabelOf(s);
@@ -1771,6 +1791,7 @@ deleteStudent=async function(){
   // Only delete from students collection
   // Payments collection is NOT deleted - history preserved
   await deleteDoc(doc(db,'students',window._curStuId));
+  try{await deleteDoc(doc(db,'idproofs',window._curStuId));}catch(e){}
   showToast('Student deleted. Payment history preserved. \u{2705}');
   closeModal('stuDetailModal');
   loadStudents();
@@ -2025,17 +2046,23 @@ approveApplication=async function(){
   if(seatRequired){ ({seat,seatPrefix}=parseSeatValue(seatVal)); }
   
   // Create student
-  await setDoc(doc(collection(db,'students')),{
+  const newStuRef=doc(collection(db,'students'));
+  const studentData={
     name:p.name,phone:p.phone,altPhone:p.altPhone||'',address:p.address||'',
     dob:p.dob||'',
     seat,seatPrefix,slot:p.slot,fee,admFrom,admTo,
     idType:p.idType,idNumber:p.idNumber,
     photoUrl:p.photoUrl||'',
-    idPhotoUrl:p.idPhotoUrl||'',
+    idPhotoUrl:'',
     feeStatus:'paid',
     createdAt:new Date().toISOString(),
     updatedAt:new Date().toISOString()
-  });
+  };
+  if(p.idPhotoUrl){
+    const okId=await saveIdPhoto(newStuRef.id,p.idPhotoUrl);
+    if(okId) studentData.hasIdPhoto=true; else studentData.idPhotoUrl=p.idPhotoUrl; // fallback: never lose the photo
+  }
+  await setDoc(newStuRef,studentData);
   
   // Update application status
   await updateDoc(doc(db,'applications',window._curAppId),{status:'approved',approvedAt:new Date().toISOString()});
@@ -2067,11 +2094,39 @@ rejectApplication=async function(){
   loadPending();
 };
 
+// ===== ID PROOF PHOTO STORAGE (own collection keeps the student list light) =====
+async function saveIdPhoto(studentId,dataUrl){
+  try{
+    await setDoc(doc(db,'idproofs',studentId),{data:dataUrl,updatedAt:new Date().toISOString()});
+    return true;
+  }catch(e){ console.warn('idproofs write refused, keeping photo in student record',e); return false; }
+}
+async function fetchIdPhoto(studentId){
+  try{
+    const sn=await getDoc(doc(db,'idproofs',studentId));
+    return sn.exists()?sn.data().data:null;
+  }catch(e){ return null; }
+}
+// Moves ID photos stored inside student records (older saves) into the idproofs collection
+async function migrateIdPhotos(){
+  if(window._idMigrated) return;
+  window._idMigrated=true;
+  const legacy=(window._students||[]).filter(s=>s.idPhotoUrl).slice(0,25);
+  for(const s of legacy){
+    const ok=await saveIdPhoto(s.id,s.idPhotoUrl);
+    if(!ok) return; // rules not ready yet - leave photos where they are
+    try{
+      await updateDoc(doc(db,'students',s.id),{idPhotoUrl:'',hasIdPhoto:true});
+      s.idPhotoUrl=''; s.hasIdPhoto=true;
+    }catch(e){ return; }
+  }
+}
+
 // ===== ID PROOF PHOTO HANDLERS =====
 window.handleStuIdPhoto=function(e){
   const file=e.target.files[0]; if(!file) return;
   compressPhoto(file,data=>{
-    window._idPhoto=data;
+    window._idPhoto=data; window._idPhotoChanged=true;
     document.getElementById('stuIdPhotoImg').src=data;
     document.getElementById('stuIdPhotoPreview').style.display='block';
   },700,.6);
@@ -2084,10 +2139,18 @@ window.handleRegIdPhoto=function(e){
     document.getElementById('regIdPhotoPreview').style.display='block';
   },700,.6);
 };
-window.viewIdPhoto=function(kind){
+window.viewIdPhoto=async function(kind){
   let src='';
-  if(kind==='stu'){const s=window._students.find(x=>x.id===window._curStuId); src=s&&s.idPhotoUrl;}
-  else{src=window._curAppData&&window._curAppData.idPhotoUrl;}
+  if(kind==='stu'){
+    const s=window._students.find(x=>x.id===window._curStuId);
+    if(!s) return;
+    src=s.idPhotoUrl;
+    if(!src&&s.hasIdPhoto){
+      showToast('Loading ID photo...');
+      src=await fetchIdPhoto(s.id);
+      if(!src){showToast('Could not load ID photo');return;}
+    }
+  } else { src=window._curAppData&&window._curAppData.idPhotoUrl; }
   if(!src) return;
   document.getElementById('idPhotoViewImg').src=src;
   document.getElementById('idPhotoModal').classList.add('open');
