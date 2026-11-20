@@ -526,9 +526,9 @@
     </div>
     <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="regName" placeholder="Your full name"/></div>
     <div class="form-group"><label class="form-label">Phone Number *</label><input type="tel" class="form-control" id="regPhone" placeholder="10-digit number" maxlength="10"/></div>
-    <div class="form-group"><label class="form-label">Alternate Phone *</label><input type="tel" class="form-control" id="regAltPhone" placeholder="Alternate mobile number" maxlength="10"/></div>
+    <div class="form-group"><label class="form-label">Alternate Phone</label><input type="tel" class="form-control" id="regAltPhone" placeholder="Alternate mobile number" maxlength="10"/></div>
     <div class="form-group"><label class="form-label">Date of Birth *</label><input type="date" class="form-control" id="regDob"/></div>
-    <div class="form-group"><label class="form-label">Address *</label><input type="text" class="form-control" id="regAddress" placeholder="Your full address"/></div>
+    <div class="form-group"><label class="form-label">Address</label><input type="text" class="form-control" id="regAddress" placeholder="Your full address"/></div>
     <div class="form-group">
       <label class="form-label">Preferred Slot *</label>
       <select class="form-control" id="regSlot">
@@ -552,7 +552,7 @@
     </div>
     <div class="form-group"><label class="form-label">ID Number *</label><input type="text" class="form-control" id="regIdNum" placeholder="ID document number"/></div>
     <div class="form-group">
-      <label class="form-label">ID Proof Photo *</label>
+      <label class="form-label">ID Proof Photo</label>
       <div class="photo-wrap">
         <div class="photo-upload" onclick="document.getElementById('regIdPhotoGallery').click()"><span style="font-size:22px">&#x1F5BC;&#xFE0F;</span><span style="font-size:9px">Gallery</span></div>
         <div class="photo-upload" onclick="document.getElementById('regIdPhotoCamera').click()"><span style="font-size:22px">&#x1F4F7;</span><span style="font-size:9px">Camera</span></div>
@@ -587,9 +587,9 @@
     </div>
     <div class="form-group"><label class="form-label">Full Name *</label><input type="text" class="form-control" id="stuName" placeholder="Full name"/></div>
     <div class="form-group"><label class="form-label">Phone *</label><input type="tel" class="form-control" id="stuPhone" placeholder="10-digit" maxlength="10"/></div>
-    <div class="form-group"><label class="form-label">Alternate Phone *</label><input type="tel" class="form-control" id="stuAltPhone" placeholder="Alternate mobile number" maxlength="10"/></div>
+    <div class="form-group"><label class="form-label">Alternate Phone</label><input type="tel" class="form-control" id="stuAltPhone" placeholder="Alternate mobile number" maxlength="10"/></div>
     <div class="form-group"><label class="form-label">Date of Birth *</label><input type="date" class="form-control" id="stuDob"/></div>
-    <div class="form-group"><label class="form-label">Address *</label><input type="text" class="form-control" id="stuAddress" placeholder="Address"/></div>
+    <div class="form-group"><label class="form-label">Address</label><input type="text" class="form-control" id="stuAddress" placeholder="Address"/></div>
     <div class="form-group">
       <label class="form-label">Slot Type *</label>
       <select class="form-control" id="stuSlot" onchange="onSlotChange()">
@@ -621,7 +621,7 @@
     </div>
     <div class="form-group"><label class="form-label">ID Number *</label><input type="text" class="form-control" id="stuIdNum" placeholder="ID number"/></div>
     <div class="form-group">
-      <label class="form-label">ID Proof Photo *</label>
+      <label class="form-label">ID Proof Photo</label>
       <div class="photo-wrap">
         <div class="photo-upload" onclick="document.getElementById('stuIdPhotoGallery').click()"><span style="font-size:22px">&#x1F5BC;&#xFE0F;</span><span style="font-size:9px">Gallery</span></div>
         <div class="photo-upload" onclick="document.getElementById('stuIdPhotoCamera').click()"><span style="font-size:22px">&#x1F4F7;</span><span style="font-size:9px">Camera</span></div>
@@ -1544,9 +1544,7 @@ saveStudent=async function(){
   const idNumber=document.getElementById('stuIdNum').value.trim();
   if(!name||!phone||(seatRequired&&!seatVal)||!slot||!fee||!admFromRaw||!admToRaw){showToast('Fill all required fields');return;}
   if(isNew){
-    if(!altPhone){showToast('Alternate phone is required');return;}
     if(!dobRaw){showToast('Date of birth is required');return;}
-    if(!address){showToast('Address is required');return;}
     if(!idType){showToast('Select ID proof type');return;}
     if(!idNumber){showToast('ID number is required');return;}
   }
@@ -1563,7 +1561,6 @@ saveStudent=async function(){
   const admTo=isoToDDMMYYYY(admToRaw);
   if(phone.length!==10){showToast('Enter valid 10-digit phone');return;}
   if(!window._photo&&!window._editMode){showToast('\u{1F4F7} Photo is required!');return;}
-  if(!window._idPhoto&&!window._editMode){showToast('\u{1FAAA} ID proof photo is required!');return;}
 
   let seat='',seatPrefix='';
   if(slot!=='unreserved'){
@@ -1936,12 +1933,11 @@ submitRegistration=async function(){
   const altPhone=document.getElementById('regAltPhone').value.trim();
   const dobRaw=document.getElementById('regDob').value;
   const purpose=document.getElementById('regPurpose').value.trim();
-  if(!name||!phone||!altPhone||!dobRaw||!address||!slot||!idType||!idNum||!purpose){showToast('Please fill all required fields');return;}
+  if(!name||!phone||!dobRaw||!slot||!idType||!idNum||!purpose){showToast('Please fill all required fields');return;}
   if(phone.length!==10){showToast('Enter valid 10-digit phone');return;}
-  if(altPhone.length!==10){showToast('Enter valid 10-digit alternate phone');return;}
+  if(altPhone&&altPhone.length!==10){showToast('Enter valid 10-digit alternate phone');return;}
   if(dobRaw>new Date().toISOString().split('T')[0]){showToast('Date of birth cannot be in the future');return;}
   if(!window._regPhoto){showToast('\u{1F4F7} Photo is required! Please upload your photo.');return;}
-  if(!window._regIdPhoto){showToast('\u{1FAAA} ID proof photo is required!');return;}
   const dobParts=dobRaw.split('-');
   const dob=dobParts[2]+'-'+dobParts[1]+'-'+dobParts[0];
   try{
